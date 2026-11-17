@@ -31,6 +31,7 @@ public partial class SpotifyStatusViewModel(SpotifyService spotifyService) : Vie
         ? StatusKind.Busy
         : Installation.Edition switch
         {
+            SpotifyEdition.Desktop when Installation.XpuiKind == XpuiKind.Missing => StatusKind.Warning,
             SpotifyEdition.Desktop => StatusKind.Success,
             SpotifyEdition.MicrosoftStore => StatusKind.Warning,
             _ => StatusKind.Error,
@@ -40,6 +41,7 @@ public partial class SpotifyStatusViewModel(SpotifyService spotifyService) : Vie
         ? "Looking for Spotify…"
         : Installation.Edition switch
         {
+            SpotifyEdition.Desktop when Installation.XpuiKind == XpuiKind.Missing => "Spotify files are missing",
             SpotifyEdition.Desktop => "Spotify is ready",
             SpotifyEdition.MicrosoftStore => "Store edition found",
             _ => "Spotify not found",
@@ -91,6 +93,7 @@ public partial class SpotifyStatusViewModel(SpotifyService spotifyService) : Vie
             return;
         _isWatching = true;
 
+        var lastBuildCheck = DateTime.UtcNow;
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(2));
         while (await timer.WaitForNextTickAsync())
         {
@@ -98,8 +101,12 @@ public partial class SpotifyStatusViewModel(SpotifyService spotifyService) : Vie
                 continue;
 
             var running = await Task.Run(spotifyService.IsRunning);
-            if (running != Installation.IsRunning && !IsChecking)
+            if (!IsChecking && (running != Installation.IsRunning ||
+                OperatingSystem.IsMacOS() && DateTime.UtcNow - lastBuildCheck >= TimeSpan.FromSeconds(10)))
+            {
                 await ReloadAsync();
+                lastBuildCheck = DateTime.UtcNow;
+            }
         }
     }
 }

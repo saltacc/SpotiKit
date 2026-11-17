@@ -20,6 +20,19 @@ public sealed record SpotiKitPaths(
     public string SnippetsDir => Path.Combine(AddonsRoot, "Snippets");
 
     public bool IsSandboxed { get; init; }
+    public bool AllowSpotifyControl { get; init; }
+
+    public string SpotifyOfflineBnkPath
+    {
+        get
+        {
+            var legacy = Path.Combine(SpotifyLocalDataDir, "offline.bnk");
+            if (!OperatingSystem.IsMacOS())
+                return legacy;
+            var persistent = Path.Combine(SpotifyLocalDataDir, "PersistentCache", "offline.bnk");
+            return File.Exists(persistent) || !File.Exists(legacy) ? persistent : legacy;
+        }
+    }
 
     public void MoveLegacyFolders()
     {
@@ -54,6 +67,8 @@ public sealed record SpotiKitPaths(
             string.IsNullOrWhiteSpace(spotifyOverride) ? null : spotifyOverride,
             string.IsNullOrWhiteSpace(localOverride) ? Path.Combine(localAppData, "Spotify") : localOverride)
         {
+            AllowSpotifyControl = Environment.GetEnvironmentVariable("SPOTIKIT_FULL_BUNDLE_DEV") == "1" &&
+                                  !string.IsNullOrWhiteSpace(spotifyOverride),
             IsSandboxed = !string.IsNullOrWhiteSpace(dataOverride) || !string.IsNullOrWhiteSpace(spotifyOverride) ||
                           !string.IsNullOrWhiteSpace(localOverride),
         };

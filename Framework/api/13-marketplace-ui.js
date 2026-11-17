@@ -7305,7 +7305,7 @@
         opacity: 0.45;
       }
     }
-    .global-nav-bar-history-buttons button[data-mp-button] {
+    button[data-spotikit="topbarLeft"][data-mp-button] {
       box-sizing: border-box;
       width: 48px;
       min-width: 48px;
@@ -7323,15 +7323,15 @@
         color 0.2s ease-in-out,
         transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    .global-nav-bar-history-buttons button[data-mp-button]:hover {
+    button[data-spotikit="topbarLeft"][data-mp-button]:hover {
       background-color: var(--background-elevated-highlight, #2a2a2a);
       color: var(--text-base);
       transform: scale(1.04);
     }
-    .global-nav-bar-history-buttons button[data-mp-button]:active {
+    button[data-spotikit="topbarLeft"][data-mp-button]:active {
       transform: scale(0.95);
     }
-    .global-nav-bar-history-buttons button[data-mp-button][data-active="true"] {
+    button[data-spotikit="topbarLeft"][data-mp-button][data-active="true"] {
       color: var(--text-base) !important;
     }
     button[data-spotikit-app-button] svg {

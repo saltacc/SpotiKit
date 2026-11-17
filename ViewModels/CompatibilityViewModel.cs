@@ -63,19 +63,19 @@ public partial class CompatibilityViewModel(
     {
         IsChecking = true;
         Checks.Clear();
-        OnPropertyChanged(nameof(TotalCount));
+        NotifyCountChanged();
         PassedCount = 0;
         IssueCount = 0;
 
         await Spotify.RefreshAsync();
         var client = Spotify.Installation;
-        var original = await Task.Run(() => backups.FindPristine(client.Version));
+        var original = await Task.Run(() => backups.FindPristine(client));
         var results = await compatibilityService.RunAsync(client, versions.List, original);
 
         foreach (var result in results)
         {
             Checks.Add(result);
-            OnPropertyChanged(nameof(TotalCount));
+            NotifyCountChanged();
             if (result.Status == StatusKind.Success)
                 PassedCount++;
             else if (result.Status is StatusKind.Warning or StatusKind.Error)
@@ -92,7 +92,7 @@ public partial class CompatibilityViewModel(
             return;
 
         var client = Spotify.Installation;
-        var original = await Task.Run(() => backups.FindPristine(client.Version));
+        var original = await Task.Run(() => backups.FindPristine(client));
         var results = await compatibilityService.RunAsync(client, versions.List, original);
         if (IsChecking)
             return;
@@ -102,7 +102,7 @@ public partial class CompatibilityViewModel(
             Checks.Clear();
             foreach (var result in results)
                 Checks.Add(result);
-            OnPropertyChanged(nameof(TotalCount));
+            NotifyCountChanged();
         }
         else
         {
@@ -115,5 +115,13 @@ public partial class CompatibilityViewModel(
         IssueCount = Checks.Count(c => c.Status is StatusKind.Warning or StatusKind.Error);
         OnPropertyChanged(nameof(OverallStatus));
         OnPropertyChanged(nameof(IsAllClear));
+    }
+
+    private void NotifyCountChanged()
+    {
+        OnPropertyChanged(nameof(TotalCount));
+        OnPropertyChanged(nameof(Score));
+        OnPropertyChanged(nameof(ScoreText));
+        OnPropertyChanged(nameof(Summary));
     }
 }

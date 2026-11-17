@@ -42,11 +42,13 @@
                 </ExperimentalAcrylicBorder.Material>
             </ExperimentalAcrylicBorder>
 
-            <Grid RowDefinitions="44,*">
+            <Grid x:Name="ChromeGrid" RowDefinitions="44,*">
 
+                <!-- Title bar. On macOS the code-behind makes it taller, leaves room on the left for the
+                     native traffic lights and hides the custom caption buttons (see ApplyPlatformChrome). -->
                 <Border Grid.Row="0" Background="Transparent"
                         WindowDecorationProperties.ElementRole="TitleBar">
-                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="20,0,8,0">
+                    <Grid x:Name="TitleBarContent" ColumnDefinitions="Auto,*,Auto" Margin="20,0,8,0">
                         <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                             <Border Width="24" Height="24" CornerRadius="7"
                                     Background="{DynamicResource AccentBrush}"
@@ -58,7 +60,7 @@
                                        VerticalAlignment="Center" />
                         </StackPanel>
 
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2"
+                        <StackPanel x:Name="CaptionButtons" Grid.Column="2" Orientation="Horizontal" Spacing="2"
                                     VerticalAlignment="Center">
                             <Button Theme="{StaticResource CaptionButton}"
                                     WindowDecorationProperties.ElementRole="MinimizeButton"

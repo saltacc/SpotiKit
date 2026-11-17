@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using SpotiKit.Models;
 
@@ -18,6 +19,7 @@ public sealed class CompatibilityService
             CheckUiFiles(spotify),
             CheckOtherMods(spotify),
             CheckVersion(spotify, versions),
+            CheckMappings(spotify),
             CheckWriteAccess(spotify),
             CheckRunning(spotify),
             CheckDiskSpace(spotify),
@@ -33,8 +35,14 @@ public sealed class CompatibilityService
             return new(title, $"{(build >= 22000 ? "Windows 11" : "Windows 10")} (build {build})", StatusKind.Success, "IconWindows");
         }
 
-        return new(title, $"{Environment.OSVersion.VersionString}. SpotiKit is only tested on Windows so far",
-            StatusKind.Warning, "IconWindows");
+        if (OperatingSystem.IsMacOS())
+        {
+            var architecture = RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "Apple Silicon" : "Intel";
+            return new(title, $"macOS {Environment.OSVersion.Version} ({architecture})", StatusKind.Success, "IconComputer");
+        }
+
+        return new(title, $"{RuntimeInformation.OSDescription}. This platform has not been validated yet",
+            StatusKind.Warning, "IconComputer");
     }
 
     private static CompatibilityResult CheckClient(SpotifyInstallation spotify) => spotify.Edition switch
@@ -113,6 +121,11 @@ public sealed class CompatibilityService
         if (spotify is not { Edition: SpotifyEdition.Desktop, InstallPath: { } installPath })
             return new(title, "Needs the desktop app", StatusKind.Neutral, "IconLock");
 
+        if (MacInstallPreflight.AppliesTo(spotify))
+            return MacInstallPreflight.Problem(spotify) is { } problem
+                ? new(title, problem, StatusKind.Error, "IconLock")
+                : new(title, "The app's parent folder permits staging and replacement", StatusKind.Success, "IconLock");
+
         var target = Path.Combine(installPath, "Apps");
         try
         {
@@ -125,6 +138,15 @@ public sealed class CompatibilityService
         {
             return new(title, "Spotify's folder is read-only for your account", StatusKind.Error, "IconLock");
         }
+    }
+
+    private static CompatibilityResult CheckMappings(SpotifyInstallation spotify)
+    {
+        if (!spotify.IsInstalled)
+            return new("Theme support", "Waiting for a Spotify installation", StatusKind.Neutral, "IconCode");
+        var selected = ClassMapCatalog.Bundled.Select(spotify);
+        return new("Theme support", selected.Description,
+            selected.IsSupported && !selected.IsFallback ? StatusKind.Success : StatusKind.Warning, "IconCode");
     }
 
     private static CompatibilityResult CheckRunning(SpotifyInstallation spotify) =>
@@ -141,7 +163,11 @@ public sealed class CompatibilityService
             if (string.IsNullOrEmpty(root))
                 return new(title, "The drive could not be determined", StatusKind.Warning, "IconDisk");
 
-            var needed = (spotify.XpuiPath is { } xpui && File.Exists(xpui) ? new FileInfo(xpui).Length * 3 : 0) + 20L * 1024 * 1024;
+            var size = spotify.XpuiPath is { } xpui && File.Exists(xpui) ? new FileInfo(xpui).Length : 0;
+            if (OperatingSystem.IsMacOS() && spotify.InstallPath is { } resources &&
+                MacApplicationBundle.FromResources(resources) is { } bundle && MacBundleFiles.IsComplete(bundle))
+                size = MacBundleFiles.Size(bundle);
+            var needed = size * 3 + 20L * 1024 * 1024;
             var free = new DriveInfo(root).AvailableFreeSpace;
             var freeText = $"{free / 1024d / 1024 / 1024:0.#} GB free";
             return free >= needed

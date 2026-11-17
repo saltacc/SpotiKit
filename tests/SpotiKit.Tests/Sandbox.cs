@@ -15,14 +15,22 @@ public sealed class Sandbox : IDisposable
     public Sandbox(string? index = SampleIndex, bool withBom = false)
     {
         Root = Path.Combine(Path.GetTempPath(), "spotikit-tests", Guid.NewGuid().ToString("N"));
-        SpotifyDir = Path.Combine(Root, "Spotify");
+        SpotifyDir = OperatingSystem.IsMacOS()
+            ? Path.Combine(Root, "Spotify.app", "Contents", "Resources")
+            : Path.Combine(Root, "Spotify");
         Directory.CreateDirectory(Path.Combine(SpotifyDir, "Apps"));
 
+        var executable = OperatingSystem.IsMacOS() ? Path.GetFullPath(Path.Combine(SpotifyDir, "../MacOS/Spotify"))
+            : Path.Combine(SpotifyDir, OperatingSystem.IsWindows() ? "Spotify.exe" : "spotify");
+        Directory.CreateDirectory(Path.GetDirectoryName(executable)!);
         var notepad = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "notepad.exe");
-        if (File.Exists(notepad))
-            File.Copy(notepad, Path.Combine(SpotifyDir, "Spotify.exe"));
+        if (OperatingSystem.IsWindows() && File.Exists(notepad))
+            File.Copy(notepad, executable);
         else
-            File.WriteAllBytes(Path.Combine(SpotifyDir, "Spotify.exe"), []);
+            File.WriteAllBytes(executable, []);
+        if (OperatingSystem.IsMacOS())
+            File.WriteAllText(Path.Combine(SpotifyDir, "../Info.plist"),
+                "<plist version=\"1.0\"><dict><key>CFBundleShortVersionString</key><string>1.2.3.4</string></dict></plist>");
 
         if (index is not null)
             CreateSpa(XpuiPath, index, withBom);

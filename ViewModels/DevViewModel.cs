@@ -252,7 +252,7 @@ public partial class DevViewModel : ViewModelBase
                 if (!await _spotifyService.CloseAsync(TimeSpan.FromSeconds(5)))
                 {
                     MessageStatus = StatusKind.Error;
-                    Message = "Spotify didn't close. Quit it from the tray icon and try again.";
+                    Message = SpotifyPause.StillRunning;
                     return;
                 }
                 await Install.Spotify.ReloadAsync();

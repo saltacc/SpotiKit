@@ -56,6 +56,7 @@ public sealed class AppUpdateService
 
     public string? CannotUpdateReason =>
         !IsSingleFile ? "This is a development build. Get the new version from GitHub."
+        : !OperatingSystem.IsWindows() ? "Automatic application updates are not available on this platform. Build the new version from source."
         : ExePath is null ? "The location of SpotiKit.exe is unknown."
         : null;
 

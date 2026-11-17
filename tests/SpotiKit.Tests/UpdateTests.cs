@@ -14,7 +14,7 @@ public class SpotifyUpdateServiceTests
     private static SpotifyInstallation Client(string version = "1.2.3.4") =>
         new(SpotifyEdition.Desktop, version, "C:\\nowhere", false);
 
-    [Fact]
+    [WindowsFact]
     public void Hold_locks_the_update_folder_and_release_unlocks_it()
     {
         using var box = new Sandbox();
@@ -37,7 +37,7 @@ public class SpotifyUpdateServiceTests
         Assert.False(Directory.Exists(service.UpdatePath));
     }
 
-    [Fact]
+    [WindowsFact]
     public void A_hold_from_an_older_SpotiKit_is_replaced_by_the_locked_folder()
     {
         using var box = new Sandbox();
@@ -57,7 +57,7 @@ public class SpotifyUpdateServiceTests
         service.Release();
     }
 
-    [Fact]
+    [WindowsFact]
     public void A_staged_update_is_only_discarded_when_asked()
     {
         using var box = new Sandbox();
@@ -74,7 +74,7 @@ public class SpotifyUpdateServiceTests
         service.Release();
     }
 
-    [Fact]
+    [WindowsFact]
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public void A_blocker_from_another_tool_is_reported_and_only_removed_when_asked()
     {

@@ -182,7 +182,7 @@ public class InstallerServiceTests
         var original = FileHash.Sha256(box.XpuiPath);
 
         await installer.InstallAsync(FrameworkPackage.Bundled, 5, new NoProgress(), CancellationToken.None);
-        var pristine = backups.FindPristine(spotify.Detect().Version);
+        var pristine = backups.FindPristine(spotify.Detect());
         Assert.NotNull(pristine);
 
         var result = await installer.RestoreAsync(pristine!);
@@ -231,7 +231,8 @@ public class InstallerServiceTests
 
         Assert.True(result.Succeeded, result.Message);
         Assert.InRange(progress.Reports.Count, 4, 200);
-        for (var step = 0; step < InstallerService.InstallPlan.Count; step++)
+        var plan = InstallerService.InstallPlanFor(new SpotifyService(box.Paths).Detect());
+        for (var step = 0; step < plan.Count; step++)
             Assert.Contains(progress.Reports, r => r.StepIndex == step && r.StepFraction >= 1);
     }
 
