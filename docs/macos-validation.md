@@ -84,7 +84,7 @@ The local receipts are `bin/macos-implementation/final-runtime.json`, `playback-
 
 ## Development and capture workflow
 
-Use the complete development launcher described in the README. The partial archive sandbox cannot validate native launch or signing. SpotiKit development data is isolated; Spotify's own profile is shared when the development copy runs.
+Use `./tools/run-macos-dev.sh --full-bundle` to copy the installed Spotify app into `bin/macos-full-dev/` and open SpotiKit against that copy with separate settings, backups, and logs. Set `SPOTIKIT_DEV_SOURCE` to choose the source for the first copy, or `SPOTIKIT_DEV_TARGET` to use an existing complete development bundle. Spotify uses your usual profile when launched. Running the launcher without `--full-bundle` uses an archive-only fixture for patch and restore tests. Follow the README for a normal launch. [Run on macOS](../README.md#run-on-macos)
 
 The launcher now runs a self-contained `SpotiKit.app` from `bin/macos-app/<runtime>/`, rather than hosting the UI through `dotnet`. `Application.Name` and the bundle's `CFBundleName`/`CFBundleDisplayName` are all `SpotiKit`; its Dock/Finder icon is generated from the existing 1024 px logo. The native menu includes About SpotiKit. Build the bundle independently with `tools/macos/build-dev-app.sh`; use the development launcher to supply the intended target and isolated SpotiKit data paths.
 
@@ -114,7 +114,14 @@ node tools/class-map/scripts/new-version.mjs finish 1.3.9.2055 \
 
 The snapshot is written to `bin/mac-capture/snapshot.json`. For a later build, pass that local file with `--from` and use a separate `--work` directory. The default work tree under `tools/class-map/work/` is also ignored and is searched for prior local snapshots. Use `--catalog bin/mac-capture/catalog.json` when validating the tooling against a scratch catalog. A complete offline capture and finish run against the preserved pristine Mac app reproduced the frozen mappings and both native fingerprints exactly. The installed app applies the embedded profile without capture tools or snapshots.
 
-For live acceptance, use `tools/macos/validate-runtime.mjs` with `--exercise --pages --lifecycle --screenshot`. `--playback` explicitly enables the controlled muted transition and restoration check. The tool writes a JSON report, optionally captures the rendered page, and exits unsuccessfully if its required checks fail. Restart normally after testing to close the debugging port.
+For live acceptance, open the development copy with its local debugging port and run the validator.
+
+```sh
+open -a "/path/to/development/Spotify.app" --args --remote-debugging-port=9229
+node tools/macos/validate-runtime.mjs --exercise --pages --lifecycle --screenshot
+```
+
+`--playback` enables the controlled muted transition and restoration check. The tool writes a JSON report, optionally captures the rendered page, and exits unsuccessfully if its required checks fail. Restart normally after testing to close the debugging port.
 
 ## Remaining validation limits
 
