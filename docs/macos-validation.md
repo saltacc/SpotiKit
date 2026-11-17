@@ -2,6 +2,8 @@
 
 Validated locally on 2026-11-16 and 2026-11-17, on an Apple Silicon Mac running macOS 27. This is experimental development support for an identified Spotify build. Initial native tests used a separate complete Spotify copy; later normal-mode repairs patched `/Applications/Spotify.app` after full backups. Vendor originals remain preserved in recovery backups.
 
+The current branch targets upstream v0.9.2 (`e5dd28f`). The upstream Spicetify attribution is preserved, including on the modified notification helper. The development bundle carries the [third-party notices](../THIRD-PARTY-NOTICES.md) and accompanying license texts.
+
 ## Upstream v0.9.1 integration
 
 The Mac changes now build on upstream v0.9.1 (`272a9cd`). Its native-only Marketplace, component discovery, version bump, and developer documentation link are retained. Upstream removed the Spicetify compatibility modules and cleans up imported catalog items at startup; those modules have not been reintroduced. Song Stats and other Spicetify-only add-ons therefore are not supported by this version. The generic native menu error handling and visible notification fix remain.

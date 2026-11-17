@@ -89,6 +89,9 @@ jobs:
           task_executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$task_app/Contents/Info.plist")"
           test -x "$task_app/Contents/MacOS/$task_executable"
           test -f "$task_app/Contents/Resources/SpotiKit.icns"
+          cmp LICENSE "$task_app/Contents/Resources/LICENSE"
+          cmp THIRD-PARTY-NOTICES.md "$task_app/Contents/Resources/THIRD-PARTY-NOTICES.md"
+          cmp LICENSES/LGPL-2.1.txt "$task_app/Contents/Resources/LICENSES/LGPL-2.1.txt"
           /usr/bin/lipo -verify_arch "$SPOTIKIT_CI_ARCH" "$task_app/Contents/MacOS/$task_executable"
 
       - name: Upload test results

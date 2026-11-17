@@ -432,6 +432,7 @@
   internal.findSnackbar = findSnackbar;
 
   // Adapted from Spicetify.showNotification (spicetify/cli, LGPL-2.1). See THIRD-PARTY-NOTICES.md.
+  // Modified on 2026-11-17 to render all notifications with Spotify's default variant.
   SpotiKit.notify = function (message, options) {
     options = options || {};
     var bar = findSnackbar();
@@ -440,7 +441,6 @@
       return { close: function () {} };
     }
     var key = bar.enqueueSnackbar(message, {
-      // Spotify's provider registers default/headless content; other variants can be invisible.
       variant: "default",
       autoHideDuration: options.duration,
       persist: options.duration === Infinity,
