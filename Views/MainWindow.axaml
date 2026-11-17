@@ -1,0 +1,244 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SpotiKit.ViewModels"
+        xmlns:c="using:SpotiKit.Controls"
+        xmlns:svc="using:SpotiKit.Services"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="780"
+        x:Class="SpotiKit.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon="/Assets/SpotiKit.ico"
+        Title="SpotiKit"
+        Width="1200" Height="780"
+        MinWidth="980" MinHeight="660"
+        WindowStartupLocation="CenterScreen"
+        ExtendClientAreaToDecorationsHint="True"
+        WindowDecorations="Full"
+        WindowDecorationsTheme="{StaticResource InvisibleWindowDecorations}"
+        TransparencyLevelHint="AcrylicBlur, Blur"
+        TransparencyBackgroundFallback="{StaticResource CharcoalBrush}"
+        Background="Transparent"
+        Foreground="{StaticResource TextPrimaryBrush}"
+        Padding="{Binding $self.OffScreenMargin}">
+
+    <Design.DataContext>
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <Window.Resources>
+        <c:IndexToOffsetConverter x:Key="NavOffset" Step="48" />
+    </Window.Resources>
+
+    <Panel>
+        <Panel>
+            <ExperimentalAcrylicBorder IsHitTestVisible="False">
+                <ExperimentalAcrylicBorder.Material>
+                    <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                                 TintColor="#0A0C11"
+                                                 TintOpacity="1"
+                                                 MaterialOpacity="0.84"
+                                                 FallbackColor="#0C0E13" />
+                </ExperimentalAcrylicBorder.Material>
+            </ExperimentalAcrylicBorder>
+
+            <Grid RowDefinitions="44,*">
+
+                <Border Grid.Row="0" Background="Transparent"
+                        WindowDecorationProperties.ElementRole="TitleBar">
+                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="20,0,8,0">
+                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <Border Width="24" Height="24" CornerRadius="7"
+                                    Background="{DynamicResource AccentBrush}"
+                                    BoxShadow="{StaticResource ControlRim}">
+                                <c:StrokeIcon Data="{StaticResource IconBars}" Width="16" Height="16"
+                                              StrokeThickness="2" Foreground="White" />
+                            </Border>
+                            <TextBlock Text="SpotiKit" FontSize="14" FontWeight="Bold" LetterSpacing="-0.2"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2"
+                                    VerticalAlignment="Center">
+                            <Button Theme="{StaticResource CaptionButton}"
+                                    WindowDecorationProperties.ElementRole="MinimizeButton"
+                                    AutomationProperties.Name="Minimize"
+                                    Click="OnMinimizeClick">
+                                <c:StrokeIcon Data="{StaticResource CaptionMinimize}" GridSize="10"
+                                              Width="10" Height="10" StrokeThickness="1.1" />
+                            </Button>
+                            <Button Theme="{StaticResource CaptionButton}"
+                                    WindowDecorationProperties.ElementRole="MaximizeButton"
+                                    AutomationProperties.Name="Maximize"
+                                    Click="OnMaximizeClick">
+                                <Panel>
+                                    <c:StrokeIcon Data="{StaticResource CaptionMaximize}" GridSize="10"
+                                                  Width="10" Height="10" StrokeThickness="1.1"
+                                                  IsVisible="{Binding $parent[Window].WindowState,
+                                                              Converter={x:Static ObjectConverters.NotEqual},
+                                                              ConverterParameter={x:Static WindowState.Maximized}}" />
+                                    <c:StrokeIcon Data="{StaticResource CaptionRestore}" GridSize="10"
+                                                  Width="10" Height="10" StrokeThickness="1.1"
+                                                  IsVisible="{Binding $parent[Window].WindowState,
+                                                              Converter={x:Static ObjectConverters.Equal},
+                                                              ConverterParameter={x:Static WindowState.Maximized}}" />
+                                </Panel>
+                            </Button>
+                            <Button Theme="{StaticResource CaptionCloseButton}"
+                                    WindowDecorationProperties.ElementRole="CloseButton"
+                                    AutomationProperties.Name="Close"
+                                    Click="OnCloseClick">
+                                <c:StrokeIcon Data="{StaticResource CaptionClose}" GridSize="10"
+                                              Width="10" Height="10" StrokeThickness="1.1" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Row="1" ColumnDefinitions="236,*" Classes="window-body"
+                      Classes.blurred="{Binding Dialogs.IsOpen}" IsEnabled="{Binding !Dialogs.IsOpen}">
+
+                    <Border Grid.Column="0" Classes="glass" Margin="14,10,0,14" Padding="12"
+                            Background="#0AFFFFFF">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Bottom" Spacing="10">
+                                <Border Classes="subcard" Padding="12">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                                        <c:StatusIndicator Kind="{Binding Spotify.Status}" VerticalAlignment="Center" />
+                                        <StackPanel Grid.Column="1" Spacing="1">
+                                            <TextBlock Text="{Binding Spotify.Headline}" FontSize="12.5"
+                                                       FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Spotify.VersionText}" Classes="caption"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                        <Button Grid.Column="2" Theme="{StaticResource IconButton}"
+                                                Width="28" Height="28"
+                                                Command="{Binding Spotify.RefreshCommand}"
+                                                c:GlassToolTip.Tip="Detect Spotify again">
+                                            <Panel Classes.spin-fast="{Binding Spotify.IsChecking}">
+                                                <c:StrokeIcon Data="{StaticResource IconRefresh}" Width="14" Height="14" />
+                                            </Panel>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                                <TextBlock Classes="caption" HorizontalAlignment="Center" FontSize="11"
+                                           Text="{Binding AppVersion, StringFormat='SpotiKit {0}'}" />
+                                <TextBlock Classes="caption" HorizontalAlignment="Center" FontSize="10.5" TextWrapping="Wrap"
+                                           TextAlignment="Center" Foreground="{StaticResource WarningBrush}"
+                                           Text="{Binding SandboxText}" IsVisible="{Binding IsSandboxed}"
+                                           c:GlassToolTip.Tip="{Binding SandboxPath}" />
+                            </StackPanel>
+
+                            <Panel Margin="0,4,0,0">
+                                <Border Height="44" VerticalAlignment="Top" CornerRadius="10"
+                                        Background="{DynamicResource AccentSoftBrush}"
+                                        BoxShadow="{StaticResource ControlRim}"
+                                        RenderTransform="{Binding SelectedPageIndex, Converter={StaticResource NavOffset}}">
+                                    <Border.Transitions>
+                                        <Transitions>
+                                            <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.5">
+                                                <TransformOperationsTransition.Easing>
+                                                    <SpringEasing Mass="1" Stiffness="115" Damping="16.5" />
+                                                </TransformOperationsTransition.Easing>
+                                            </TransformOperationsTransition>
+                                        </Transitions>
+                                    </Border.Transitions>
+                                    <Border Width="3" Height="18" CornerRadius="2" HorizontalAlignment="Left"
+                                            Background="{DynamicResource AccentBrush}" />
+                                </Border>
+
+                                <ListBox Classes="nav" SelectedIndex="{Binding SelectedPageIndex}">
+                                    <ListBoxItem>
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <c:StrokeIcon Data="{StaticResource IconHome}" />
+                                            <TextBlock Text="Home" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </ListBoxItem>
+                                    <ListBoxItem>
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <c:StrokeIcon Data="{StaticResource IconInstall}" />
+                                            <TextBlock Text="Installation" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </ListBoxItem>
+                                    <ListBoxItem>
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <c:StrokeIcon Data="{StaticResource IconShield}" />
+                                            <TextBlock Text="Compatibility" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </ListBoxItem>
+                                    <ListBoxItem>
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <c:StrokeIcon Data="{StaticResource IconBackup}" />
+                                            <TextBlock Text="Backups" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </ListBoxItem>
+                                    <ListBoxItem>
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <c:StrokeIcon Data="{StaticResource IconUpdates}" />
+                                            <TextBlock Text="Updates" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </ListBoxItem>
+                                    <ListBoxItem>
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <c:StrokeIcon Data="{StaticResource IconCode}" />
+                                            <TextBlock Text="Developer" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </ListBoxItem>
+                                    <ListBoxItem>
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <c:StrokeIcon Data="{StaticResource IconSliders}" />
+                                            <TextBlock Text="Settings" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </ListBoxItem>
+                                </ListBox>
+                            </Panel>
+                        </DockPanel>
+                    </Border>
+
+                    <TransitioningContentControl Grid.Column="1" Content="{Binding CurrentPage}">
+                        <TransitioningContentControl.PageTransition>
+                            <c:FadeScaleTransition />
+                        </TransitioningContentControl.PageTransition>
+                    </TransitioningContentControl>
+                    <Panel x:Name="PrewarmHost" Grid.Column="1" Opacity="0.01" IsHitTestVisible="False" ClipToBounds="True" />
+                </Grid>
+            </Grid>
+        </Panel>
+
+        <c:GlassDialogHost Dialog="{Binding Dialogs.Current}">
+            <c:GlassDialogHost.ContentTemplate>
+                <DataTemplate x:DataType="vm:ConfirmDialogViewModel">
+                    <StackPanel Spacing="14">
+                        <TextBlock Classes="h2" FontSize="18" Text="{Binding Title}" TextWrapping="Wrap" />
+                        <TextBlock Classes="body" Text="{Binding Message}" />
+                        <ItemsControl ItemsSource="{Binding Details}" IsVisible="{Binding HasDetails}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="svc:InstallChange">
+                                    <Grid ColumnDefinitions="120,*" ColumnSpacing="14" Margin="0,5">
+                                        <TextBlock Classes="caption" Text="{Binding Label}" Margin="0,1,0,0" />
+                                        <StackPanel Grid.Column="1" Spacing="2">
+                                            <TextBlock Text="{Binding Value}" FontSize="13" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                            <TextBlock Classes="caption" Text="{Binding Note}" TextWrapping="Wrap"
+                                                       IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,8,0,0">
+                            <Button Command="{Binding CancelCommand}" Padding="18,11" IsCancel="True" IsVisible="{Binding HasCancel}">
+                                <TextBlock Text="{Binding CancelText}" />
+                            </Button>
+                            <Button Theme="{StaticResource PrimaryButton}" Classes.danger="{Binding IsDestructive}"
+                                    Command="{Binding ConfirmCommand}" Padding="18,11" IsDefault="True">
+                                <TextBlock Text="{Binding ConfirmText}" />
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </DataTemplate>
+            </c:GlassDialogHost.ContentTemplate>
+        </c:GlassDialogHost>
+
+        <c:GlassToolTipHost />
+    </Panel>
+</Window>

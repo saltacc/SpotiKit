@@ -1,0 +1,9 @@
+{
+  "type": "extension",
+  "name": "Now playing toast",
+  "description": "A notification for every new track, and a context menu entry that copies links.",
+  "authors": [{ "name": "SpotiKit" }],
+  "tags": ["notifications"],
+  "spotify": "1.3.5 - 1.3.6",
+  "main": "extension.js"
+}

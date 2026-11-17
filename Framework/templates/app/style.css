@@ -1,0 +1,12 @@
+.{{ID}} {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 32px;
+}
+
+.{{ID}}-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}

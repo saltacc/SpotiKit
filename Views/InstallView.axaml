@@ -1,0 +1,280 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SpotiKit.ViewModels"
+             xmlns:m="using:SpotiKit.Models"
+             xmlns:c="using:SpotiKit.Controls"
+             x:Class="SpotiKit.Views.InstallView"
+             x:DataType="vm:InstallViewModel">
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <Border Classes="page">
+            <StackPanel Spacing="18">
+
+                <StackPanel Spacing="6" Classes="rise" Margin="4,4,0,4">
+                    <TextBlock Classes="h1" Text="Installation" />
+                    <TextBlock Classes="body" MaxWidth="600" HorizontalAlignment="Left"
+                               Text="Adds SpotiKit to Spotify. Your original files are backed up first." />
+                </StackPanel>
+
+                <Panel Classes="rise" IsVisible="{Binding ShowBlocker}">
+                    <c:GlassCard Padding="20,16" CornerRadius="16">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                            <Border Classes="icon-tile" Background="#29FFB547">
+                                <c:StrokeIcon Data="{StaticResource IconAlert}" Foreground="{StaticResource WarningBrush}" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Not ready to install yet" FontWeight="SemiBold" FontSize="13.5" />
+                                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding Blocker}" />
+                            </StackPanel>
+                            <Button AutomationProperties.Name="Close Spotify" Grid.Column="2" VerticalAlignment="Center" Command="{Binding CloseSpotifyCommand}"
+                                    IsVisible="{Binding CanOfferClose}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Panel Classes.spin-fast="{Binding IsClosingSpotify}">
+                                        <c:StrokeIcon Data="{StaticResource IconRefresh}" Width="14" Height="14"
+                                                      IsVisible="{Binding IsClosingSpotify}" />
+                                    </Panel>
+                                    <c:StrokeIcon Data="{StaticResource IconClose}" Width="14" Height="14"
+                                                  IsVisible="{Binding !IsClosingSpotify}" />
+                                    <TextBlock Text="Close Spotify" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </c:GlassCard>
+                </Panel>
+
+                <Panel Classes="rise" IsVisible="{Binding ShowSpicetify}">
+                    <c:GlassCard Padding="20,16" CornerRadius="16">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                            <Border Classes="icon-tile" Background="#29FFB547">
+                                <c:StrokeIcon Data="{StaticResource IconAlert}" Foreground="{StaticResource WarningBrush}" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Spicetify found" FontWeight="SemiBold" FontSize="13.5" />
+                                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding SpicetifyText}" />
+                            </StackPanel>
+                            <Button AutomationProperties.Name="Remove Spicetify" Grid.Column="2" VerticalAlignment="Center"
+                                    Command="{Binding RemoveSpicetifyCommand}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Panel Classes.spin-fast="{Binding IsRemovingSpicetify}" IsVisible="{Binding IsRemovingSpicetify}">
+                                        <c:StrokeIcon Data="{StaticResource IconRefresh}" Width="14" Height="14" />
+                                    </Panel>
+                                    <c:StrokeIcon Data="{StaticResource IconClose}" Width="14" Height="14"
+                                                  IsVisible="{Binding !IsRemovingSpicetify}" />
+                                    <TextBlock Text="Remove Spicetify" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </c:GlassCard>
+                </Panel>
+
+                <Grid Classes="rise-1" ColumnDefinitions="5*,6*" ColumnSpacing="16">
+
+                    <c:GlassCard Grid.Column="0" Padding="28" VerticalAlignment="Top">
+                        <StackPanel Spacing="22">
+                            <Panel Width="168" Height="168" HorizontalAlignment="Center" Margin="0,6,0,0">
+                                <c:ProgressRing Thickness="10" Value="{Binding Progress}" />
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="2">
+                                    <TextBlock Text="{Binding ProgressText}" FontSize="32" FontWeight="Bold"
+                                               LetterSpacing="-1" HorizontalAlignment="Center"
+                                               IsVisible="{Binding !IsCompleted}" />
+                                    <Panel Classes.pop="{Binding IsCompleted}" HorizontalAlignment="Center" IsVisible="{Binding IsCompleted}">
+                                        <c:StrokeIcon Data="{StaticResource IconCheck}" Width="44" Height="44"
+                                                      StrokeThickness="3.5" Foreground="{StaticResource SuccessBrush}" />
+                                    </Panel>
+                                    <TextBlock Text="complete" Classes="caption" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Panel>
+
+                            <StackPanel Spacing="6" HorizontalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                                    <c:StatusIndicator Kind="{Binding Status}" VerticalAlignment="Center" />
+                                    <TextBlock Classes="h2" Text="{Binding Headline}" />
+                                </StackPanel>
+                                <TextBlock Classes="body" TextAlignment="Center" MaxWidth="340" Text="{Binding Detail}" />
+                                <TextBlock Classes="caption" TextAlignment="Center" MaxWidth="340" TextWrapping="Wrap"
+                                           Text="{Binding LastError.Hint, FallbackValue={x:Null}}"
+                                           IsVisible="{Binding HasError}" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="10" HorizontalAlignment="Stretch" MaxWidth="300">
+                                <Button AutomationProperties.Name="{Binding ActionText}" Theme="{StaticResource PrimaryButton}" Command="{Binding InstallCommand}"
+                                        IsVisible="{Binding IsIdle}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="9">
+                                        <c:StrokeIcon Data="{StaticResource IconInstall}" Width="16" Height="16" StrokeThickness="2" />
+                                        <TextBlock Text="{Binding ActionText}" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding UninstallCommand}" IsVisible="{Binding CanUninstall}" Padding="18,13"
+                                        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                                    <TextBlock Text="Uninstall" />
+                                </Button>
+                                <Button AutomationProperties.Name="Cancel" Command="{Binding InstallCancelCommand}" IsVisible="{Binding IsWorking}"
+                                        Padding="22,13" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <c:StrokeIcon Data="{StaticResource IconClose}" Width="14" Height="14" />
+                                        <TextBlock Text="Cancel" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                            <Rectangle Classes="divider" />
+
+                            <StackPanel Spacing="16">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                    <c:StrokeIcon Data="{StaticResource IconBackup}"
+                                                  Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Top" Margin="0,1,0,0" />
+                                    <StackPanel Grid.Column="1" Spacing="2">
+                                        <TextBlock Text="Always backed up first" FontWeight="SemiBold" FontSize="13" />
+                                        <TextBlock Classes="caption" TextWrapping="Wrap"
+                                                   Text="Spotify's files are backed up before every change. If something fails, they're put back." />
+                                    </StackPanel>
+                                </Grid>
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                    <c:StrokeIcon Data="{StaticResource IconPlay}"
+                                                  Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Top" Margin="0,1,0,0" />
+                                    <StackPanel Grid.Column="1" Spacing="2">
+                                        <TextBlock Text="Start Spotify when done" FontWeight="SemiBold" FontSize="13" />
+                                        <TextBlock Classes="caption" TextWrapping="Wrap" Text="Opens Spotify when it's done" />
+                                    </StackPanel>
+                                    <c:LiquidToggle Grid.Column="2" VerticalAlignment="Center"
+                                                    IsChecked="{Binding Settings.LaunchSpotifyAfterInstall}"
+                                                    IsEnabled="{Binding IsIdle}" />
+                                </Grid>
+                                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" IsVisible="{Binding IsInstalled}">
+                                    <c:StrokeIcon Data="{StaticResource IconShield}"
+                                                  Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Top" Margin="0,1,0,0" />
+                                    <StackPanel Grid.Column="1" Spacing="2">
+                                        <TextBlock Text="Safe mode" FontWeight="SemiBold" FontSize="13" />
+                                        <TextBlock Classes="caption" TextWrapping="Wrap"
+                                                   Text="Spotify acting up? Start it without extensions, apps, themes and snippets." />
+                                    </StackPanel>
+                                    <Button AutomationProperties.Name="Start in safe mode" Grid.Column="2" VerticalAlignment="Center"
+                                            Command="{Binding StartSafeModeCommand}" Padding="14,9">
+                                        <StackPanel Orientation="Horizontal" Spacing="7">
+                                            <Panel Classes.spin-fast="{Binding IsStartingSafeMode}" IsVisible="{Binding IsStartingSafeMode}">
+                                                <c:StrokeIcon Data="{StaticResource IconRefresh}" Width="14" Height="14" />
+                                            </Panel>
+                                            <TextBlock Text="Start" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </c:GlassCard>
+
+                    <c:GlassCard Grid.Column="1" Padding="26" VerticalAlignment="Top">
+                        <StackPanel Spacing="18">
+                            <StackPanel Spacing="2">
+                                <TextBlock Classes="h2" Text="What happens" />
+                                <TextBlock Classes="caption" TextWrapping="Wrap"
+                                           Text="Nothing is changed before the backup is done." />
+                            </StackPanel>
+
+                            <ItemsControl ItemsSource="{Binding Steps}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:InstallStepViewModel">
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16" Margin="0,0,0,4">
+                                            <Grid RowDefinitions="Auto,*" Width="32">
+                                                <Panel Width="32" Height="32">
+                                                    <Border CornerRadius="16" Background="#08FFFFFF"
+                                                            BoxShadow="inset 0 0 0 1.5 #2EFFFFFF"
+                                                            IsVisible="{Binding IsPending}">
+                                                        <TextBlock Text="{Binding Number}" FontSize="12" FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource TextTertiaryBrush}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                    <Panel IsVisible="{Binding IsActive}">
+                                                        <Ellipse Fill="{DynamicResource AccentSoftBrush}" />
+                                                        <c:ProgressRing Thickness="3" IsIndeterminate="True" />
+                                                        <TextBlock Text="{Binding Number}" FontSize="12" FontWeight="Bold"
+                                                                   Foreground="{DynamicResource AccentBrush}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Panel>
+                                                    <Panel Classes.pop="{Binding IsDone}" IsVisible="{Binding IsDone}">
+                                                        <Border CornerRadius="16" Background="{StaticResource SuccessBrush}"
+                                                                BoxShadow="inset 0 1 0 0 #66FFFFFF">
+                                                            <c:StrokeIcon Data="{StaticResource IconCheck}" Width="16" Height="16"
+                                                                          StrokeThickness="2.4" Foreground="#0C1A14" />
+                                                        </Border>
+                                                    </Panel>
+                                                    <Panel Classes.pop="{Binding IsFailed}" IsVisible="{Binding IsFailed}">
+                                                        <Border CornerRadius="16"
+                                                                Background="{Binding Status, Converter={x:Static c:StatusBrushConverter.Instance}}">
+                                                            <c:StrokeIcon Data="{StaticResource IconClose}" Width="14" Height="14"
+                                                                          StrokeThickness="2.4" Foreground="#241A08" />
+                                                        </Border>
+                                                    </Panel>
+                                                </Panel>
+                                                <Rectangle Grid.Row="1" Width="1.5" MinHeight="18" Margin="0,4"
+                                                           HorizontalAlignment="Center" Fill="#1AFFFFFF"
+                                                           IsVisible="{Binding !IsLast}" />
+                                            </Grid>
+
+                                            <StackPanel Grid.Column="1" Spacing="3" Margin="0,5,0,18">
+                                                <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding Description}" Classes="caption" TextWrapping="Wrap" />
+                                                <ProgressBar Margin="0,8,0,0" Maximum="1" Value="{Binding Progress}"
+                                                             IsVisible="{Binding IsActive}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </c:GlassCard>
+                </Grid>
+
+                <Panel Classes="rise-2">
+                    <c:GlassCard Padding="24,20">
+                        <StackPanel Spacing="14">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Classes="h2" Text="Activity" />
+                                    <TextBlock Classes="caption" TextWrapping="Wrap"
+                                               Text="Everything SpotiKit did, with times." />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Button Command="{Binding CopyLogCommand}" Padding="14,9">
+                                        <TextBlock Text="Copy log" />
+                                    </Button>
+                                    <Button AutomationProperties.Name="Log folder" Command="{Binding OpenLogFolderCommand}" Padding="14,9">
+                                        <StackPanel Orientation="Horizontal" Spacing="7">
+                                            <c:StrokeIcon Data="{StaticResource IconFolder}" Width="14" Height="14" />
+                                            <TextBlock Text="Log folder" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Classes="caption" Text="Nothing has happened yet."
+                                       IsVisible="{Binding !LogEntries.Count}" />
+
+                            <ScrollViewer MaxHeight="280" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl ItemsSource="{Binding LogEntries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="m:LogEntry">
+                                            <Grid ColumnDefinitions="64,Auto,*" ColumnSpacing="12" Margin="0,4">
+                                                <TextBlock Classes="mono" Text="{Binding TimeText}" VerticalAlignment="Top"
+                                                           Foreground="{StaticResource TextTertiaryBrush}" Margin="0,2,0,0" />
+                                                <Ellipse Grid.Column="1" Width="7" Height="7" VerticalAlignment="Top" Margin="0,6,0,0"
+                                                         Fill="{Binding Status, Converter={x:Static c:StatusBrushConverter.Instance}}" />
+                                                <StackPanel Grid.Column="2" Spacing="2">
+                                                    <TextBlock TextWrapping="Wrap" FontSize="12.5">
+                                                        <Run Text="{Binding Operation}" FontWeight="SemiBold" />
+                                                        <Run Text="{Binding Message}" Foreground="{StaticResource TextSecondaryBrush}" />
+                                                    </TextBlock>
+                                                    <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding Hint}"
+                                                               IsVisible="{Binding Hint, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </c:GlassCard>
+                </Panel>
+            </StackPanel>
+        </Border>
+    </ScrollViewer>
+</UserControl>

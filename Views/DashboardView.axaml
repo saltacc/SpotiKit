@@ -1,0 +1,219 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SpotiKit.ViewModels"
+             xmlns:m="using:SpotiKit.Models"
+             xmlns:c="using:SpotiKit.Controls"
+             x:Class="SpotiKit.Views.DashboardView"
+             x:DataType="vm:DashboardViewModel">
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <Border Classes="page">
+            <StackPanel Spacing="18">
+
+                <Panel Classes="rise">
+                    <c:GlassCard Padding="0" Height="300" Background="Transparent">
+                        <Panel>
+                            <Border CornerRadius="20" ClipToBounds="True">
+                                <c:HeroArt x:Name="Art" Classes="breathe"
+                                           Source="/Assets/spotify-hero.jpg"
+                                           Background="#152822"
+                                           FocusX="0.72" FocusY="0.5" Zoom="1.25" />
+                            </Border>
+
+                            <c:GlassPane Art="{Binding #Art}" Margin="16" Width="440"
+                                         HorizontalAlignment="Left" Padding="26,22">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="9">
+                                        <c:StatusIndicator Kind="{Binding Spotify.Status}" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Spotify.Headline}" FontSize="12.5" FontWeight="SemiBold"
+                                                   Foreground="#D9FFFFFF" VerticalAlignment="Center" />
+                                    </StackPanel>
+
+                                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Spacing="10">
+                                        <Button AutomationProperties.Name="{Binding Install.ActionText}" Theme="{StaticResource PrimaryButton}"
+                                                Command="{Binding InstallNowCommand}"
+                                                IsEnabled="{Binding Install.CanInstall}">
+                                            <StackPanel Orientation="Horizontal" Spacing="9">
+                                                <c:StrokeIcon Data="{StaticResource IconInstall}" Width="16" Height="16"
+                                                              StrokeThickness="2" />
+                                                <TextBlock Text="{Binding Install.ActionText}" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button AutomationProperties.Name="Compatibility" Padding="18,13" Background="#1FFFFFFF"
+                                                Command="{Binding OpenCommand}"
+                                                CommandParameter="{x:Static vm:AppPage.Compatibility}">
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <c:StrokeIcon Data="{StaticResource IconShield}" Width="16" Height="16" />
+                                                <TextBlock Text="Compatibility" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+
+                                    <StackPanel VerticalAlignment="Center" Spacing="8" Margin="0,4">
+                                        <TextBlock Classes="display" FontSize="31" LineHeight="36" TextWrapping="Wrap"
+                                                   Text="Customize your Spotify client" />
+                                        <TextBlock Classes="body" FontSize="13.5" Foreground="#CCFFFFFF"
+                                                   Text="Themes, extensions and custom apps for the Spotify desktop app." />
+                                    </StackPanel>
+                                </DockPanel>
+                            </c:GlassPane>
+                        </Panel>
+                    </c:GlassCard>
+                </Panel>
+
+                <Grid Classes="rise-1" ColumnDefinitions="*,*,*" ColumnSpacing="16">
+
+                    <c:GlassCard Grid.Column="0" Classes="small">
+                        <Grid RowDefinitions="Auto,*" RowSpacing="16">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Classes="icon-tile">
+                                    <c:StrokeIcon Data="{StaticResource IconMusic}" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="Spotify" Classes="caption" />
+                                    <TextBlock Text="{Binding Spotify.EditionText}" FontSize="13" FontWeight="SemiBold" />
+                                </StackPanel>
+                                <c:StatusIndicator Grid.Column="2" Kind="{Binding Spotify.Status}"
+                                                   VerticalAlignment="Center" Margin="0,0,4,0" />
+                            </Grid>
+                            <StackPanel Grid.Row="1" Spacing="3" VerticalAlignment="Bottom">
+                                <TextBlock Classes="stat" Text="{Binding Spotify.Headline}" />
+                                <TextBlock Classes="caption" Text="{Binding Spotify.DetailText}"
+                                           TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                        </Grid>
+                    </c:GlassCard>
+
+                    <c:GlassCard Grid.Column="1" Classes="small">
+                        <Grid RowDefinitions="Auto,*" RowSpacing="16">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                                <Border Classes="icon-tile">
+                                    <c:StrokeIcon Data="{StaticResource IconBars}" StrokeThickness="2" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="SpotiKit" Classes="caption" />
+                                    <TextBlock Text="In Spotify" FontSize="13" FontWeight="SemiBold" />
+                                </StackPanel>
+                                <c:StatusIndicator Grid.Column="2" Kind="{Binding Install.Status}"
+                                                   VerticalAlignment="Center" Margin="0,0,4,0" />
+                            </Grid>
+                            <StackPanel Grid.Row="1" Spacing="3" VerticalAlignment="Bottom">
+                                <TextBlock Classes="stat" Text="{Binding SpotiKitStatusText}" />
+                                <TextBlock Classes="caption" Text="{Binding SpotiKitStatusDetail}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <ProgressBar Margin="0,8,0,0" Maximum="1" Value="{Binding Install.Progress}"
+                                             IsVisible="{Binding Install.IsWorking}" />
+                            </StackPanel>
+                        </Grid>
+                    </c:GlassCard>
+
+                    <c:GlassCard Grid.Column="2" Classes="small">
+                        <Grid RowDefinitions="Auto,*" RowSpacing="16">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="Compatibility" Classes="caption" />
+                                    <TextBlock Classes="stat" Text="{Binding Compatibility.Headline}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+
+                                <Border Grid.Column="1" Classes="wobble" Width="52" Height="52">
+                                    <Panel>
+                                        <c:ProgressRing Thickness="5"
+                                                        Value="{Binding Compatibility.Score}"
+                                                        IsIndeterminate="{Binding Compatibility.IsChecking}"
+                                                        Foreground="{Binding Compatibility.OverallStatus, Converter={x:Static c:StatusBrushConverter.Instance}}" />
+                                        <TextBlock Text="{Binding Compatibility.ScoreText}" FontSize="12.5" FontWeight="Bold"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   IsVisible="{Binding !Compatibility.IsAllClear}" />
+                                        <Panel Classes.pop="{Binding Compatibility.IsAllClear}"
+                                               IsVisible="{Binding Compatibility.IsAllClear}">
+                                            <c:StrokeIcon Data="{StaticResource IconCheck}" Width="22" Height="22"
+                                                          StrokeThickness="2.6" Foreground="{StaticResource SuccessBrush}" />
+                                        </Panel>
+                                    </Panel>
+                                </Border>
+                            </Grid>
+
+                            <StackPanel Grid.Row="1" Spacing="10" VerticalAlignment="Bottom">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" MaxWidth="207" />
+                                    </Grid.ColumnDefinitions>
+                                    <ItemsControl ItemsSource="{Binding Compatibility.Checks}" Margin="-2.5,0">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Rows="1" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="m:CompatibilityResult">
+                                                <Panel Classes="pop-in" Margin="2.5,0">
+                                                    <Border Height="6" CornerRadius="3"
+                                                            Background="{Binding Status, Converter={x:Static c:StatusBrushConverter.Instance}}"
+                                                            c:GlassToolTip.Tip="{Binding Title}" />
+                                                </Panel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Grid>
+                                <TextBlock Classes="caption" Text="{Binding Compatibility.Summary}" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Grid>
+                    </c:GlassCard>
+                </Grid>
+
+                <StackPanel Classes="rise-2" Spacing="12">
+                    <TextBlock Classes="section" Text="Explore" Margin="4,6,0,0" />
+
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="16">
+                        <Button AutomationProperties.Name="Installation" Grid.Column="0" Theme="{StaticResource TileButton}" Command="{Binding OpenCommand}"
+                                CommandParameter="{x:Static vm:AppPage.Install}">
+                            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+                                <Border Classes="icon-tile" HorizontalAlignment="Left">
+                                    <c:StrokeIcon Data="{StaticResource IconInstall}" />
+                                </Border>
+                                <StackPanel Grid.Row="1" Spacing="4">
+                                    <TextBlock Classes="h2" Text="Installation" />
+                                    <TextBlock Classes="body" FontSize="12.5" LineHeight="18"
+                                               Text="Add SpotiKit to Spotify." />
+                                </StackPanel>
+                                <c:StrokeIcon Grid.Row="2" Classes="tile-arrow" Data="{StaticResource IconArrowRight}"
+                                              HorizontalAlignment="Left" Width="16" Height="16" />
+                            </Grid>
+                        </Button>
+                        <Button AutomationProperties.Name="Compatibility" Grid.Column="1" Theme="{StaticResource TileButton}" Command="{Binding OpenCommand}"
+                                CommandParameter="{x:Static vm:AppPage.Compatibility}">
+                            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+                                <Border Classes="icon-tile" HorizontalAlignment="Left">
+                                    <c:StrokeIcon Data="{StaticResource IconShield}" />
+                                </Border>
+                                <StackPanel Grid.Row="1" Spacing="4">
+                                    <TextBlock Classes="h2" Text="Compatibility" />
+                                    <TextBlock Classes="body" FontSize="12.5" LineHeight="18"
+                                               Text="See if your setup is ready." />
+                                </StackPanel>
+                                <c:StrokeIcon Grid.Row="2" Classes="tile-arrow" Data="{StaticResource IconArrowRight}"
+                                              HorizontalAlignment="Left" Width="16" Height="16" />
+                            </Grid>
+                        </Button>
+                        <Button AutomationProperties.Name="Settings" Grid.Column="2" Theme="{StaticResource TileButton}" Command="{Binding OpenCommand}"
+                                CommandParameter="{x:Static vm:AppPage.Settings}">
+                            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+                                <Border Classes="icon-tile" HorizontalAlignment="Left">
+                                    <c:StrokeIcon Data="{StaticResource IconSliders}" />
+                                </Border>
+                                <StackPanel Grid.Row="1" Spacing="4">
+                                    <TextBlock Classes="h2" Text="Settings" />
+                                    <TextBlock Classes="body" FontSize="12.5" LineHeight="18"
+                                               Text="Accent color, backups and updates." />
+                                </StackPanel>
+                                <c:StrokeIcon Grid.Row="2" Classes="tile-arrow" Data="{StaticResource IconArrowRight}"
+                                              HorizontalAlignment="Left" Width="16" Height="16" />
+                            </Grid>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </ScrollViewer>
+</UserControl>

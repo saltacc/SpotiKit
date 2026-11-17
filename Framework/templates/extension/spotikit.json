@@ -1,0 +1,11 @@
+{
+  "type": "extension",
+  "name": "{{NAME}}",
+  "description": "",
+  "preview": "preview.png",
+  "readme": "README.md",
+  "authors": [],
+  "tags": [],
+  "spotify": "{{SPOTIFY}}",
+  "main": "extension.js"
+}

@@ -1,0 +1,38 @@
+{
+  "name": "spotikit-kit",
+  "version": "0.9.0",
+  "description": "Create, build, check, live-test and pack SpotiKit themes, extensions, custom apps and CSS snippets.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "bin": {
+    "spotikit-kit": "bin/spotikit-kit.mjs"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "templates",
+    "data"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "prepack": "node scripts/sync.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "esbuild": "0.28.2"
+  },
+  "homepage": "https://spotikit.com/docs/kit",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NMWplays/SpotiKit.git",
+    "directory": "tools/kit"
+  },
+  "keywords": [
+    "spotikit",
+    "spotify",
+    "theme",
+    "extension"
+  ]
+}

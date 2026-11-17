@@ -1,0 +1,785 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:c="using:SpotiKit.Controls">
+
+    <ControlTheme x:Key="InvisibleWindowDecorations" TargetType="WindowDrawnDecorations">
+        <Setter Property="DefaultTitleBarHeight" Value="0" />
+        <Setter Property="DefaultFrameThickness" Value="0" />
+        <Setter Property="DefaultShadowThickness" Value="0" />
+        <Setter Property="Template">
+            <WindowDrawnDecorationsTemplate>
+                <WindowDrawnDecorationsContent />
+            </WindowDrawnDecorationsTemplate>
+        </Setter>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type Button}" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource GlassFillBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
+        <Setter Property="Padding" Value="16,10" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="RenderTransform" Value="scale(1)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.25"
+                                               Easing="{StaticResource EaseOutQuint}" />
+            </Transitions>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="PART_Border"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        BoxShadow="{StaticResource ControlRim}">
+                    <Border.Transitions>
+                        <Transitions>
+                            <BrushTransition Property="Background" Duration="0:0:0.15" />
+                            <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2" />
+                        </Transitions>
+                    </Border.Transitions>
+                    <ContentPresenter x:Name="PART_ContentPresenter"
+                                      Padding="{TemplateBinding Padding}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      RecognizesAccessKey="True" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:pointerover">
+            <Setter Property="RenderTransform" Value="scale(1.03)" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{StaticResource GlassFillHoverBrush}" />
+            <Setter Property="BoxShadow" Value="{StaticResource ControlRimHover}" />
+        </Style>
+        <Style Selector="^:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.97)" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{StaticResource GlassFillPressedBrush}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.4" />
+            <Setter Property="Cursor" Value="Arrow" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="22,13" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="PART_Border"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        BoxShadow="{StaticResource ControlRim}">
+                    <Border.Transitions>
+                        <Transitions>
+                            <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2" />
+                        </Transitions>
+                    </Border.Transitions>
+                    <Panel>
+                        <Border x:Name="PART_Highlight" CornerRadius="{TemplateBinding CornerRadius}"
+                                Background="White" Opacity="0" IsHitTestVisible="False">
+                            <Border.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                                </Transitions>
+                            </Border.Transitions>
+                        </Border>
+                        <ContentPresenter x:Name="PART_ContentPresenter"
+                                          Padding="{TemplateBinding Padding}"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True" />
+                    </Panel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:pointerover /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#PART_Highlight">
+            <Setter Property="Opacity" Value="0.1" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#PART_Highlight">
+            <Setter Property="Opacity" Value="0" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="RenderTransform" Value="scale(1.08)" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="CaptionButton" TargetType="Button">
+        <Setter Property="Width" Value="40" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="PART_Border" Background="{TemplateBinding Background}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                    <Border.Transitions>
+                        <Transitions>
+                            <BrushTransition Property="Background" Duration="0:0:0.12" />
+                        </Transitions>
+                    </Border.Transitions>
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#PART_Border">
+            <Setter Property="Background" Value="#1AFFFFFF" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#PART_Border">
+            <Setter Property="Background" Value="#0DFFFFFF" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="CaptionCloseButton" TargetType="Button" BasedOn="{StaticResource CaptionButton}">
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#PART_Border">
+            <Setter Property="Background" Value="#E5484D" />
+        </Style>
+        <Style Selector="^:pressed /template/ Border#PART_Border">
+            <Setter Property="Background" Value="#C13B40" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="TileButton" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource GlassFillBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLarge}" />
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="RenderTransform" Value="scale(1)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35"
+                                               Easing="{StaticResource EaseOutQuint}" />
+            </Transitions>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="PART_Border"
+                        Background="{TemplateBinding Background}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        BoxShadow="{StaticResource CardShadow}">
+                    <Border.Transitions>
+                        <Transitions>
+                            <BrushTransition Property="Background" Duration="0:0:0.2" />
+                            <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.3" />
+                        </Transitions>
+                    </Border.Transitions>
+                    <Panel>
+                        <c:GlassHighlight CornerRadius="{TemplateBinding CornerRadius}"
+                                          IsActive="{TemplateBinding IsPointerOver}" />
+                        <ContentPresenter Padding="{TemplateBinding Padding}"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Panel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:pointerover">
+            <Setter Property="RenderTransform" Value="scale(1.03)" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{StaticResource GlassFillHoverBrush}" />
+            <Setter Property="BoxShadow" Value="{StaticResource CardShadowHover}" />
+        </Style>
+        <Style Selector="^:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.99)" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type c:LiquidToggle}" TargetType="c:LiquidToggle">
+        <Setter Property="Width" Value="64" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel>
+                    <Border x:Name="PART_Track" CornerRadius="999"
+                            BoxShadow="inset 0 0 0 1 #14FFFFFF, inset 0 0 4 0 #26000000" />
+
+                    <Border x:Name="PART_Knob" Width="40" Height="24"
+                            HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <Grid>
+                            <Border CornerRadius="999" Background="Transparent"
+                                    BoxShadow="0 1 3 0 #33000000, 0 0 1 0 #26000000" />
+                            <Border CornerRadius="999" ClipToBounds="True">
+                                <Border x:Name="PART_GlassTrack" Width="64" Height="28" CornerRadius="999"
+                                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                                        Effect="blur(5)" />
+                            </Border>
+                            <Border x:Name="PART_Surface" CornerRadius="999" Background="White" />
+                            <Border x:Name="PART_Rim" CornerRadius="999" Opacity="0" Background="#1AFFFFFF"
+                                    BoxShadow="inset 0 1 0 0 #CCFFFFFF, inset 0 -1 0 0 #33FFFFFF, inset 0 0 0 1 #29FFFFFF, inset 0 0 6 0 #33000000" />
+                        </Grid>
+                    </Border>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="0.4" />
+            <Setter Property="Cursor" Value="Arrow" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="NavItem" TargetType="ListBoxItem">
+        <Setter Property="Height" Value="44" />
+        <Setter Property="Margin" Value="0,0,0,4" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="FontSize" Value="13.5" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ContentPresenter x:Name="PART_ContentPresenter"
+                                  Background="{TemplateBinding Background}"
+                                  BoxShadow="{StaticResource ControlRimClear}"
+                                  CornerRadius="{StaticResource RadiusControl}"
+                                  Padding="{TemplateBinding Padding}"
+                                  Content="{TemplateBinding Content}"
+                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}">
+                    <ContentPresenter.Transitions>
+                        <Transitions>
+                            <BrushTransition Property="Background" Duration="0:0:0.15" />
+                            <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.12" />
+                        </Transitions>
+                    </ContentPresenter.Transitions>
+                </ContentPresenter>
+            </ControlTemplate>
+        </Setter>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Foreground" Duration="0:0:0.2" />
+            </Transitions>
+        </Setter>
+
+        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#0AFFFFFF" />
+        </Style>
+        <Style Selector="^:pointerover:not(:selected) /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="BoxShadow" Value="{StaticResource ControlRim}" />
+        </Style>
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="^:selected">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+        <Style Selector="^:selected /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="SegmentItem" TargetType="ListBoxItem">
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="Margin" Value="2" />
+        <Setter Property="Background" Value="{StaticResource GlassFillBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="RenderTransform" Value="scale(1)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35">
+                    <TransformOperationsTransition.Easing>
+                        <SpringEasing Mass="1" Stiffness="320" Damping="16" />
+                    </TransformOperationsTransition.Easing>
+                </TransformOperationsTransition>
+                <BrushTransition Property="Foreground" Duration="0:0:0.2" />
+            </Transitions>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="PART_Border" Background="{TemplateBinding Background}" CornerRadius="10"
+                        BoxShadow="{StaticResource ControlRim}">
+                    <Border.Transitions>
+                        <Transitions>
+                            <BrushTransition Property="Background" Duration="0:0:0.2" />
+                            <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.2" />
+                        </Transitions>
+                    </Border.Transitions>
+                    <ContentPresenter Padding="{TemplateBinding Padding}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="RenderTransform" Value="scale(1.05)" />
+        </Style>
+        <Style Selector="^:pointerover /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{StaticResource GlassFillHoverBrush}" />
+        </Style>
+        <Style Selector="^:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.95)" />
+        </Style>
+        <Style Selector="^:selected">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        </Style>
+        <Style Selector="^:selected /template/ Border#PART_Border">
+            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+            <Setter Property="BoxShadow" Value="{StaticResource ControlRimHover}" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="ModeItem" TargetType="ListBoxItem">
+        <Setter Property="Margin" Value="5,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="PART_Card" Background="{StaticResource GlassFillBrush}" CornerRadius="{StaticResource RadiusMedium}"
+                        BoxShadow="{StaticResource ControlRim}" Padding="14,12,36,12">
+                    <Border.Transitions>
+                        <Transitions>
+                            <BrushTransition Property="Background" Duration="0:0:0.15" />
+                            <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.15" />
+                        </Transitions>
+                    </Border.Transitions>
+                    <Panel>
+                        <ContentPresenter Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                        <Border x:Name="PART_Dot" Width="18" Height="18" CornerRadius="9" Margin="0,0,-24,0"
+                                HorizontalAlignment="Right" VerticalAlignment="Top"
+                                BorderThickness="1.5" BorderBrush="{StaticResource TextTertiaryBrush}">
+                            <c:StrokeIcon x:Name="PART_Check" Data="{StaticResource IconCheck}" Width="10" Height="10"
+                                          StrokeThickness="2.4" Foreground="White" Opacity="0" />
+                        </Border>
+                    </Panel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover /template/ Border#PART_Card">
+            <Setter Property="Background" Value="{StaticResource GlassFillHoverBrush}" />
+            <Setter Property="BoxShadow" Value="{StaticResource ControlRimHover}" />
+        </Style>
+        <Style Selector="^:selected /template/ Border#PART_Card">
+            <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+        </Style>
+        <Style Selector="^:selected /template/ Border#PART_Dot">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        </Style>
+        <Style Selector="^:selected /template/ c|StrokeIcon#PART_Check">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="SwatchItem" TargetType="ListBoxItem">
+        <Setter Property="Margin" Value="6,6,8,6" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="RenderTransform" Value="scale(1)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.45">
+                    <TransformOperationsTransition.Easing>
+                        <SpringEasing Mass="1" Stiffness="320" Damping="14" />
+                    </TransformOperationsTransition.Easing>
+                </TransformOperationsTransition>
+            </Transitions>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel Width="40" Height="40">
+                    <Ellipse x:Name="PART_Ring" Stroke="White" StrokeThickness="2" Opacity="0">
+                        <Ellipse.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+                            </Transitions>
+                        </Ellipse.Transitions>
+                    </Ellipse>
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      Margin="5" />
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="RenderTransform" Value="scale(1.1)" />
+        </Style>
+        <Style Selector="^:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.92)" />
+        </Style>
+        <Style Selector="^:selected /template/ Ellipse#PART_Ring">
+            <Setter Property="Opacity" Value="0.9" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type c:StatusIndicator}" TargetType="c:StatusIndicator">
+        <Setter Property="Width" Value="10" />
+        <Setter Property="Height" Value="10" />
+        <Setter Property="Foreground" Value="{StaticResource NeutralBrush}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel>
+                    <Ellipse x:Name="PART_Halo" Fill="{TemplateBinding Foreground}" Opacity="0" />
+                    <Ellipse x:Name="PART_Glow" Fill="{TemplateBinding Foreground}" Opacity="0" Margin="-2" />
+                    <Ellipse x:Name="PART_Dot" Fill="{TemplateBinding Foreground}" />
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:success">
+            <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
+        </Style>
+        <Style Selector="^:warning">
+            <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+        </Style>
+        <Style Selector="^:error">
+            <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
+        </Style>
+        <Style Selector="^:busy">
+            <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        </Style>
+
+        <Style Selector="^:success /template/ Ellipse#PART_Glow, ^:warning /template/ Ellipse#PART_Glow, ^:error /template/ Ellipse#PART_Glow, ^:busy /template/ Ellipse#PART_Glow">
+            <Setter Property="Opacity" Value="0.22" />
+        </Style>
+
+        <Style Selector="^:success /template/ Ellipse#PART_Halo">
+            <Style.Animations>
+                <Animation Duration="0:0:2.6" IterationCount="3" Easing="CubicEaseOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0.55" />
+                        <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    </KeyFrame>
+                    <KeyFrame Cue="65%">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="ScaleTransform.ScaleX" Value="2.8" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="2.8" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="ScaleTransform.ScaleX" Value="2.8" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="2.8" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <Style Selector="^:warning /template/ Ellipse#PART_Halo">
+            <Style.Animations>
+                <Animation Duration="0:0:1.6" IterationCount="Infinite" Easing="CubicEaseOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0.6" />
+                        <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    </KeyFrame>
+                    <KeyFrame Cue="80%">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="ScaleTransform.ScaleX" Value="2.5" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="2.5" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="ScaleTransform.ScaleX" Value="2.5" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="2.5" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+
+        <Style Selector="^:busy /template/ Ellipse#PART_Halo">
+            <Style.Animations>
+                <Animation Duration="0:0:1" IterationCount="Infinite" Easing="QuadraticEaseOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="0.7" />
+                        <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="0" />
+                        <Setter Property="ScaleTransform.ScaleX" Value="2.6" />
+                        <Setter Property="ScaleTransform.ScaleY" Value="2.6" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="^:busy /template/ Ellipse#PART_Dot">
+            <Style.Animations>
+                <Animation Duration="0:0:1" IterationCount="Infinite" PlaybackDirection="Alternate"
+                           Easing="SineEaseInOut">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="Opacity" Value="1" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="Opacity" Value="0.45" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type c:ProgressRing}" TargetType="c:ProgressRing">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="Background" Value="#17FFFFFF" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel>
+                    <Ellipse Stroke="{TemplateBinding Background}"
+                             StrokeThickness="{TemplateBinding Thickness}" />
+                    <Arc x:Name="PART_Value"
+                         StartAngle="-90"
+                         SweepAngle="{TemplateBinding SweepAngle}"
+                         Stroke="{TemplateBinding Foreground}"
+                         StrokeThickness="{TemplateBinding Thickness}"
+                         StrokeLineCap="Round" />
+                    <Arc x:Name="PART_Spinner"
+                         IsVisible="False"
+                         StartAngle="-90"
+                         SweepAngle="110"
+                         Stroke="{TemplateBinding Foreground}"
+                         StrokeThickness="{TemplateBinding Thickness}"
+                         StrokeLineCap="Round" />
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Value" Duration="0:0:0.35" Easing="{StaticResource EaseOutQuint}" />
+            </Transitions>
+        </Setter>
+
+        <Style Selector="^:indeterminate /template/ Arc#PART_Value">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="^:indeterminate /template/ Arc#PART_Spinner">
+            <Setter Property="IsVisible" Value="True" />
+            <Style.Animations>
+                <Animation Duration="0:0:1.1" IterationCount="Infinite">
+                    <KeyFrame Cue="0%">
+                        <Setter Property="RotateTransform.Angle" Value="0" />
+                    </KeyFrame>
+                    <KeyFrame Cue="100%">
+                        <Setter Property="RotateTransform.Angle" Value="360" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type ProgressBar}" TargetType="ProgressBar">
+        <Setter Property="Height" Value="4" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Background" Value="#14FFFFFF" />
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Value" Duration="0:0:0.18" />
+            </Transitions>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{TemplateBinding Background}" CornerRadius="2" ClipToBounds="True">
+                    <Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}"
+                            CornerRadius="2" HorizontalAlignment="Left" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type c:GlassToolTipHost}" TargetType="c:GlassToolTipHost">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Popup x:Name="PART_Popup" Placement="Bottom" VerticalOffset="6"
+                       IsLightDismissEnabled="False">
+                    <Border x:Name="PART_Bubble" Opacity="0" MaxWidth="280"
+                            CornerRadius="8" Background="#4D101218"
+                            BoxShadow="inset 0 1 0 0 #8CFFFFFF, inset 0 -1 0 0 #1FFFFFFF, inset 0 0 0 1 #1AFFFFFF"
+                            RenderTransformOrigin="50%,0%"
+                            RenderTransform="scale(0.94)">
+                        <Border.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.18" Easing="CubicEaseOut" />
+                                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3"
+                                                               Easing="{StaticResource EaseOutQuint}" />
+                            </Transitions>
+                        </Border.Transitions>
+                        <TextBlock Text="{TemplateBinding Text}" Margin="11,7"
+                                   FontSize="12" FontWeight="Medium" TextWrapping="Wrap"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                    </Border>
+                </Popup>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:open /template/ Border#PART_Bubble">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="RenderTransform" Value="scale(1)" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type c:GlassDialogHost}" TargetType="c:GlassDialogHost">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel>
+                    <Border x:Name="PART_Dim" Background="#59060709" Opacity="0">
+                        <Border.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.22" Easing="CubicEaseOut" />
+                            </Transitions>
+                        </Border.Transitions>
+                    </Border>
+                    <Border x:Name="PART_Surface" Width="440" Opacity="0"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            CornerRadius="20" Background="#7A141821"
+                            BoxShadow="inset 0 1 0 0 #8CFFFFFF, inset 0 -1 0 0 #1FFFFFFF, inset 0 0 0 1 #1AFFFFFF, 0 24 60 0 #73000000"
+                            RenderTransformOrigin="50%,50%"
+                            RenderTransform="scale(0.94)">
+                        <Border.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut" />
+                                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.45">
+                                    <TransformOperationsTransition.Easing>
+                                        <SpringEasing Mass="1" Stiffness="300" Damping="22" />
+                                    </TransformOperationsTransition.Easing>
+                                </TransformOperationsTransition>
+                            </Transitions>
+                        </Border.Transitions>
+                        <ContentPresenter Padding="28,26"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}" />
+                    </Border>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:open /template/ Border#PART_Dim">
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:open /template/ Border#PART_Surface">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="RenderTransform" Value="scale(1)" />
+        </Style>
+    </ControlTheme>
+    <ControlTheme x:Key="{x:Type c:GlassCard}" TargetType="c:GlassCard">
+        <Setter Property="Background" Value="{StaticResource GlassFillBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLarge}" />
+        <Setter Property="Padding" Value="22" />
+        <Setter Property="RenderTransform" Value="scale(1)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.45">
+                    <TransformOperationsTransition.Easing>
+                        <SpringEasing Mass="1" Stiffness="260" Damping="20" />
+                    </TransformOperationsTransition.Easing>
+                </TransformOperationsTransition>
+            </Transitions>
+        </Setter>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel>
+                    <Border x:Name="PART_Surface"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            BoxShadow="0 8 22 0 #40000000">
+                        <Border.Transitions>
+                            <Transitions>
+                                <BrushTransition Property="Background" Duration="0:0:0.25" />
+                                <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.3" />
+                            </Transitions>
+                        </Border.Transitions>
+                    </Border>
+                    <c:GlassHighlight CornerRadius="{TemplateBinding CornerRadius}"
+                                      IsActive="{TemplateBinding IsLit}" />
+                    <ContentPresenter x:Name="PART_ContentPresenter"
+                                      Padding="{TemplateBinding Padding}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    <Border x:Name="PART_Rim" CornerRadius="{TemplateBinding CornerRadius}" IsHitTestVisible="False"
+                            BoxShadow="inset 0 1 0 0 #8CFFFFFF, inset 0 -1 0 0 #1FFFFFFF, inset 0 0 0 1 #0FFFFFFF">
+                        <Border.Transitions>
+                            <Transitions>
+                                <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.3" />
+                            </Transitions>
+                        </Border.Transitions>
+                    </Border>
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:lit">
+            <Setter Property="RenderTransform" Value="scale(1.012)" />
+        </Style>
+        <Style Selector="^.small:lit">
+            <Setter Property="RenderTransform" Value="scale(1.025)" />
+        </Style>
+        <Style Selector="^:lit /template/ Border#PART_Surface">
+            <Setter Property="Background" Value="{StaticResource GlassFillHoverBrush}" />
+            <Setter Property="BoxShadow" Value="0 14 30 0 #59000000" />
+        </Style>
+        <Style Selector="^:lit /template/ Border#PART_Rim">
+            <Setter Property="BoxShadow" Value="inset 0 1 0 0 #A6FFFFFF, inset 0 -1 0 0 #2EFFFFFF, inset 0 0 0 1 #17FFFFFF" />
+        </Style>
+    </ControlTheme>
+
+    <ControlTheme x:Key="{x:Type c:GlassPane}" TargetType="c:GlassPane">
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Background" Value="#26101418" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Panel>
+                    <c:ArtGlass Art="{TemplateBinding Art}" CornerRadius="{TemplateBinding CornerRadius}" />
+                    <Border Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}"
+                            BoxShadow="inset 0 1 0 0 #8CFFFFFF, inset 0 -1 0 0 #24FFFFFF, inset 0 0 0 1 #1AFFFFFF" />
+                    <ContentPresenter Padding="{TemplateBinding Padding}"
+                                      Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Panel>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>

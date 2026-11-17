@@ -1,0 +1,28 @@
+{
+  "name": "create-spotikit",
+  "version": "0.9.0",
+  "description": "npm create spotikit: a new SpotiKit theme, extension, custom app or CSS snippet.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "bin": {
+    "create-spotikit": "index.mjs"
+  },
+  "files": [
+    "index.mjs"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "spotikit-kit": "0.9.0"
+  },
+  "homepage": "https://spotikit.com/docs/kit",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NMWplays/SpotiKit.git",
+    "directory": "tools/create-spotikit"
+  },
+  "scripts": {
+    "prepack": "node -e \"require('fs').copyFileSync('../../LICENSE', 'LICENSE')\""
+  }
+}

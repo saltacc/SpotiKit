@@ -1,0 +1,10 @@
+{
+  "name": "spotikit-class-map-tools",
+  "private": true,
+  "description": "Builds Framework/class-map.json from a Spotify client: its code, stylesheets and live DOM.",
+  "type": "commonjs",
+  "dependencies": {
+    "acorn": "8.14.0",
+    "acorn-walk": "8.3.4"
+  }
+}
