@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <Version>0.9.1</Version>
+    <ApplicationIcon>Assets\SpotiKit.ico</ApplicationIcon>
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+    <EmbeddedResource Include="Framework\loader.js" LogicalName="SpotiKit.Framework.loader.js" />
+    <EmbeddedResource Include="Framework\api\*.js" LogicalName="SpotiKit.Framework.api.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Framework\class-map.json" LogicalName="SpotiKit.Framework.class-map.json" />
+    <EmbeddedResource Include="Framework\templates\**\*" LogicalName="SpotiKit.Templates/%(RecursiveDir)%(Filename)%(Extension)" />
+    <EmbeddedResource Include="compatibility\spotify-versions.json" LogicalName="SpotiKit.spotify-versions.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="tests\**;server\**;tools\**;website\**;examples\**;AndroidLiquidGlass-kmp\**" />
+    <None Remove="tests\**;server\**;tools\**;website\**;examples\**;AndroidLiquidGlass-kmp\**" />
+    <AvaloniaXaml Remove="tests\**;server\**;website\**" />
+    <EmbeddedResource Remove="tests\**;server\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="SpotiKit.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
+    <!-- Always restored: one NuGet restore serves every configuration. -->
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" PrivateAssets="All" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+</Project>

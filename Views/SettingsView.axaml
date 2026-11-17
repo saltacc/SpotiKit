@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SpotiKit.ViewModels"
+             xmlns:m="using:SpotiKit.Models"
+             xmlns:c="using:SpotiKit.Controls"
+             x:Class="SpotiKit.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <Border Classes="page">
+            <StackPanel Spacing="18">
+
+                <StackPanel Spacing="6" Classes="rise" Margin="4,4,0,4">
+                    <TextBlock Classes="h1" Text="Settings" />
+                    <TextBlock Classes="body" Text="Saved automatically." />
+                </StackPanel>
+
+                <Grid Classes="rise-1" ColumnDefinitions="*,*" ColumnSpacing="16">
+
+                    <StackPanel Grid.Column="0" Spacing="16">
+                        <c:GlassCard Padding="22,10">
+                            <StackPanel>
+                                <TextBlock Classes="h2" Text="Installation" Margin="0,12,0,4" />
+
+                                <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="Start Spotify when done" FontWeight="SemiBold" FontSize="13" />
+                                        <TextBlock Classes="caption" TextWrapping="Wrap"
+                                                   Text="Opens Spotify when installing is done." />
+                                    </StackPanel>
+                                    <c:LiquidToggle Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding LaunchSpotifyAfterInstall}" />
+                                </Grid>
+                                <Rectangle Classes="divider" />
+                                <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="Desktop shortcut" FontWeight="SemiBold" FontSize="13" />
+                                        <TextBlock Classes="caption" TextWrapping="Wrap"
+                                                   Text="{Binding ShortcutMessage, TargetNullValue='Puts SpotiKit on your desktop again.'}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Padding="12,7" VerticalAlignment="Center" Command="{Binding AddDesktopShortcutCommand}">
+                                        <TextBlock Text="Add to desktop" FontSize="12.5" />
+                                    </Button>
+                                </Grid>
+                                <Rectangle Classes="divider" />
+                                <Grid Classes="setting-row" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                    <c:StrokeIcon Data="{StaticResource IconBackup}" Foreground="{StaticResource SuccessBrush}"
+                                                  VerticalAlignment="Top" Margin="0,1,0,0" />
+                                    <StackPanel Grid.Column="1" Spacing="2">
+                                        <TextBlock Text="Backups are always on" FontWeight="SemiBold" FontSize="13" />
+                                        <TextBlock Classes="caption" TextWrapping="Wrap"
+                                                   Text="How many to keep is set on the Backups page." />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </c:GlassCard>
+
+                        <c:GlassCard Padding="22,10">
+                            <StackPanel>
+                                <TextBlock Classes="h2" Text="Updates" Margin="0,12,0,4" />
+                                <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="Update SpotiKit automatically" FontWeight="SemiBold" FontSize="13" />
+                                        <TextBlock Classes="caption" TextWrapping="Wrap"
+                                                   Text="New versions install on their own." />
+                                    </StackPanel>
+                                    <c:LiquidToggle Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding CheckForUpdates}" />
+                                </Grid>
+                                <Rectangle Classes="divider" />
+                                <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="Spotify updates" FontWeight="SemiBold" FontSize="13" />
+                                        <TextBlock Classes="caption" TextWrapping="Wrap"
+                                                   Text="Which Spotify updates are let through is set on the Updates page." />
+                                    </StackPanel>
+                                </Grid>
+                                <Rectangle Classes="divider" IsVisible="{Binding CanRunInBackground}" />
+                                <Grid Classes="setting-row" ColumnDefinitions="*,Auto" ColumnSpacing="16" IsVisible="{Binding CanRunInBackground}">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="Run in the background" FontWeight="SemiBold" FontSize="13" />
+                                        <TextBlock Classes="caption" TextWrapping="Wrap"
+                                                   Text="Does all of this while the app is closed. Starts with Windows." />
+                                    </StackPanel>
+                                    <c:LiquidToggle Grid.Column="1" VerticalAlignment="Center" IsChecked="{Binding RunInBackground}" />
+                                </Grid>
+                            </StackPanel>
+                        </c:GlassCard>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Spacing="16">
+                        <c:GlassCard>
+                            <StackPanel Spacing="16">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Classes="h2" Text="Accent color" />
+                                    <TextBlock Classes="caption" Text="Buttons, highlights and progress." />
+                                </StackPanel>
+
+                                <ListBox Classes="swatches" ItemsSource="{Binding Accents}" SelectedItem="{Binding SelectedAccent}">
+                                    <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ListBox.ItemsPanel>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:AccentSwatch">
+                                            <Panel c:GlassToolTip.Tip="{Binding Name}">
+                                                <Ellipse Fill="{Binding Brush}" />
+                                                <c:StrokeIcon Data="{StaticResource IconPlus}" Width="13" Height="13" StrokeThickness="2.2"
+                                                              Foreground="White" IsVisible="{Binding IsCustom}" />
+                                            </Panel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Panel VerticalAlignment="Center">
+                                        <TextBlock Classes="caption" Text="Drag in the field, or type a color." IsVisible="{Binding IsCustomAccent}" />
+                                        <TextBlock Classes="caption" Text="Pick one, or make your own with the last one." IsVisible="{Binding !IsCustomAccent}" />
+                                    </Panel>
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextSecondaryBrush}" Text="{Binding SelectedAccent.Name}" />
+                                </Grid>
+                                <StackPanel Spacing="14" IsVisible="{Binding IsCustomAccent}">
+                                    <c:AccentPicker Color="{Binding CustomColor}" />
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                        <Border Width="40" Height="40" CornerRadius="12" Background="{DynamicResource AccentBrush}"
+                                                BoxShadow="{StaticResource ControlRim}" />
+                                        <TextBox Grid.Column="1" Classes="glass" Text="{Binding CustomHex}" MaxLength="7"
+                                                 PlaceholderText="#RRGGBB" VerticalAlignment="Center" />
+                                    </Grid>
+                                </StackPanel>
+                            </StackPanel>
+                        </c:GlassCard>
+
+                        <c:GlassCard>
+                            <StackPanel Spacing="14">
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <Border Width="40" Height="40" CornerRadius="12" Background="{DynamicResource AccentBrush}"
+                                            BoxShadow="{StaticResource ControlRim}">
+                                        <c:StrokeIcon Data="{StaticResource IconBars}" Width="24" Height="24"
+                                                      StrokeThickness="2.4" Foreground="White" />
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="SpotiKit" FontWeight="Bold" FontSize="15" />
+                                        <TextBlock Classes="caption" Text="{Binding AppVersion, StringFormat='Version {0}'}" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <TextBlock Classes="body" FontSize="12.5" LineHeight="18"
+                                           Text="Themes, extensions and custom apps for Spotify. Not affiliated with Spotify AB." />
+                            </StackPanel>
+                        </c:GlassCard>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,12 @@
+{
+  "type": "theme",
+  "name": "{{NAME}}",
+  "description": "",
+  "preview": "preview.png",
+  "readme": "README.md",
+  "authors": [],
+  "tags": [],
+  "spotify": "{{SPOTIFY}}",
+  "style": "theme.css",
+  "main": "theme.js"
+}

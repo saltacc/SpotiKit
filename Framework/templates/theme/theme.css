@@ -1,0 +1,12 @@
+.main-view-panel,
+.left-sidebar-panel {
+  border-radius: 16px;
+}
+
+.track-list-row:hover {
+  background-color: color-mix(in srgb, var(--text-bright-accent) 12%, transparent);
+}
+
+[data-{{ID}}-playing] .now-playing-bar {
+  box-shadow: inset 0 1px 0 var(--text-bright-accent);
+}

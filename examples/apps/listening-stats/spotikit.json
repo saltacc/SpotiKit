@@ -1,0 +1,12 @@
+{
+  "type": "app",
+  "name": { "en": "Listening stats", "de": "Hörstatistik" },
+  "description": "What plays now and what comes next.",
+  "authors": [{ "name": "SpotiKit" }],
+  "tags": ["stats"],
+  "spotify": "1.3.5 - 1.3.6",
+  "main": "index.js",
+  "style": "style.css",
+  "icon": "stats",
+  "activeIcon": "bar-chart"
+}

@@ -1,0 +1,132 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SpotiKit.ViewModels"
+             xmlns:m="using:SpotiKit.Models"
+             xmlns:c="using:SpotiKit.Controls"
+             x:Class="SpotiKit.Views.CompatibilityView"
+             x:DataType="vm:CompatibilityViewModel">
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <Border Classes="page">
+            <StackPanel Spacing="18">
+
+                <Grid ColumnDefinitions="*,Auto" Classes="rise" Margin="4,4,0,4">
+                    <StackPanel Spacing="6">
+                        <TextBlock Classes="h1" Text="Compatibility" />
+                        <TextBlock Classes="body" MaxWidth="560" HorizontalAlignment="Left"
+                                   Text="Checks whether SpotiKit can be installed. Nothing is changed." />
+                    </StackPanel>
+                    <Button AutomationProperties.Name="Run checks again" Grid.Column="1" VerticalAlignment="Bottom" Command="{Binding RunChecksCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Panel Classes.spin-fast="{Binding IsChecking}">
+                                <c:StrokeIcon Data="{StaticResource IconRefresh}" Width="15" Height="15" />
+                            </Panel>
+                            <TextBlock Text="Run checks again" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <Panel Classes="rise-1">
+                    <c:GlassCard Padding="28,24">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="28">
+
+                            <Border Classes="wobble" Width="124" Height="124">
+                                <Panel>
+                                    <c:ProgressRing Thickness="11" Value="{Binding Score}"
+                                                    IsIndeterminate="{Binding IsChecking}"
+                                                    Foreground="{Binding OverallStatus, Converter={x:Static c:StatusBrushConverter.Instance}}" />
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="0"
+                                                IsVisible="{Binding !IsAllClear}">
+                                        <TextBlock Text="{Binding ScoreText}" FontSize="27" FontWeight="Bold" LetterSpacing="-0.8"
+                                                   HorizontalAlignment="Center" />
+                                        <TextBlock Text="passed" Classes="caption" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                    <Panel Classes.pop="{Binding IsAllClear}" IsVisible="{Binding IsAllClear}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Ellipse Width="70" Height="70" Fill="{StaticResource SuccessBrush}" Opacity="0.14" />
+                                        <c:StrokeIcon Data="{StaticResource IconCheck}" Width="44" Height="44"
+                                                      StrokeThickness="3.4" Foreground="{StaticResource SuccessBrush}" />
+                                    </Panel>
+                                </Panel>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <c:StatusIndicator Kind="{Binding OverallStatus}" VerticalAlignment="Center" />
+                                    <TextBlock Classes="h2" FontSize="22" Text="{Binding Headline}" />
+                                </StackPanel>
+                                <TextBlock Classes="body" Text="{Binding Summary}" TextWrapping="Wrap" />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" MaxWidth="324" />
+                                    </Grid.ColumnDefinitions>
+                                    <ItemsControl ItemsSource="{Binding Checks}" Margin="-3,4,-3,0">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <UniformGrid Rows="1" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="m:CompatibilityResult">
+                                                <Panel Classes="pop-in" Margin="3,0">
+                                                    <Border Height="8" CornerRadius="4"
+                                                            Background="{Binding Status, Converter={x:Static c:StatusBrushConverter.Instance}}"
+                                                            BoxShadow="inset 0 1 0 0 #59FFFFFF"
+                                                            c:GlassToolTip.Tip="{Binding Title}" />
+                                                </Panel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Grid>
+
+                                <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,4,0,0">
+                                    <c:StrokeIcon Data="{StaticResource IconFolder}" Width="14" Height="14"
+                                                  Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Classes="mono" Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center"
+                                               Text="{Binding Spotify.PathText}" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </c:GlassCard>
+                </Panel>
+
+                <ItemsControl ItemsSource="{Binding Checks}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="2" ColumnSpacing="14" RowSpacing="14" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="m:CompatibilityResult">
+                            <Panel Classes="pop-in">
+                                <c:GlassCard Classes="small" Padding="18,16" CornerRadius="16">
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                                        <Border Classes="wobble" Width="42" Height="42" VerticalAlignment="Center">
+                                            <Panel>
+                                                <Border CornerRadius="12" Opacity="0.16"
+                                                        Background="{Binding Status, Converter={x:Static c:StatusBrushConverter.Instance}}" />
+                                                <Border CornerRadius="12" BoxShadow="inset 0 1 0 0 #33FFFFFF, inset 0 0 0 1 #0FFFFFFF" />
+                                                <c:StrokeIcon Data="{Binding IconKey, Converter={x:Static c:ResourceKeyConverter.Instance}}"
+                                                              Foreground="{Binding Status, Converter={x:Static c:StatusBrushConverter.Instance}}" />
+                                                <Border Classes="badge"
+                                                        Background="{Binding Status, Converter={x:Static c:StatusBrushConverter.Instance}}">
+                                                    <c:StrokeIcon Data="{Binding Status, Converter={x:Static c:StatusGlyphConverter.Instance}}"
+                                                                  Width="12" Height="12" StrokeThickness="2.6" Foreground="#E6101418" />
+                                                </Border>
+                                            </Panel>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding Detail}" Classes="caption" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </Grid>
+                                </c:GlassCard>
+                            </Panel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,14 @@
+{
+  "type": "app",
+  "name": "{{NAME}}",
+  "description": "",
+  "preview": "preview.png",
+  "readme": "README.md",
+  "authors": [],
+  "tags": [],
+  "spotify": "{{SPOTIFY}}",
+  "main": "index.js",
+  "style": "style.css",
+  "icon": "apps",
+  "activeIcon": "apps"
+}

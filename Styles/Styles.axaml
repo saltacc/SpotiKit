@@ -1,0 +1,368 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:SpotiKit.Controls">
+
+    <Style Selector="TextBlock.display">
+        <Setter Property="FontSize" Value="36" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LetterSpacing" Value="-1.1" />
+        <Setter Property="LineHeight" Value="42" />
+    </Style>
+    <Style Selector="TextBlock.h1">
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LetterSpacing" Value="-0.6" />
+    </Style>
+    <Style Selector="TextBlock.h2">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="LetterSpacing" Value="-0.2" />
+    </Style>
+    <Style Selector="TextBlock.stat">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LetterSpacing" Value="-0.4" />
+    </Style>
+    <Style Selector="TextBlock.body">
+        <Setter Property="FontSize" Value="13.5" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="LineHeight" Value="20" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.caption">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}" />
+    </Style>
+    <Style Selector="TextBlock.section">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    </Style>
+    <Style Selector="TextBlock.mono">
+        <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, monospace" />
+        <Setter Property="FontSize" Value="11.5" />
+    </Style>
+
+    <Style Selector="Border.glass">
+        <Setter Property="Background" Value="{StaticResource GlassFillBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLarge}" />
+        <Setter Property="BoxShadow" Value="{StaticResource PanelShadow}" />
+        <Setter Property="Padding" Value="22" />
+    </Style>
+    <Style Selector="Border.subcard">
+        <Setter Property="Background" Value="{StaticResource GlassFillBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMedium}" />
+        <Setter Property="BoxShadow" Value="{StaticResource ControlRim}" />
+        <Setter Property="Padding" Value="14,12" />
+    </Style>
+
+    <Style Selector="Border.icon-tile">
+        <Setter Property="Width" Value="38" />
+        <Setter Property="Height" Value="38" />
+        <Setter Property="CornerRadius" Value="11" />
+        <Setter Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+        <Setter Property="BoxShadow" Value="inset 0 1 0 0 #33FFFFFF, inset 0 0 0 1 #0FFFFFFF" />
+    </Style>
+    <Style Selector="Border.icon-tile > c|StrokeIcon">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Border.icon-tile, Border.wobble">
+        <Setter Property="RenderTransform" Value="scale(1) rotate(0deg)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.6">
+                    <TransformOperationsTransition.Easing>
+                        <SpringEasing Mass="1" Stiffness="300" Damping="11" />
+                    </TransformOperationsTransition.Easing>
+                </TransformOperationsTransition>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="c|GlassCard:lit Border.icon-tile, c|GlassCard:lit Border.wobble, Button:pointerover Border.icon-tile">
+        <Setter Property="RenderTransform" Value="scale(1.1) rotate(-6deg)" />
+    </Style>
+
+    <Style Selector="Border.badge">
+        <Setter Property="Width" Value="18" />
+        <Setter Property="Height" Value="18" />
+        <Setter Property="CornerRadius" Value="9" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="Margin" Value="0,0,-5,-5" />
+        <Setter Property="BoxShadow" Value="inset 0 1 0 0 #66FFFFFF, 0 2 6 0 #59000000" />
+    </Style>
+    <Style Selector=":is(TemplatedControl)">
+        <Setter Property="ClipToBounds" Value="False" />
+    </Style>
+
+    <Style Selector="Border.page">
+        <Setter Property="Padding" Value="28,14,34,48" />
+    </Style>
+
+    <Style Selector="Rectangle.divider">
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Fill" Value="{StaticResource DividerBrush}" />
+    </Style>
+
+    <Style Selector="Grid.setting-row">
+        <Setter Property="Margin" Value="0,14" />
+    </Style>
+
+    <Style Selector=":is(Panel).rise">
+        <Style.Animations>
+            <Animation Duration="0:0:0.55" Easing="{StaticResource EaseOutQuint}" FillMode="Both">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="TranslateTransform.Y" Value="14" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector=":is(Panel).rise-1">
+        <Style.Animations>
+            <Animation Duration="0:0:0.55" Delay="0:0:0.07" Easing="{StaticResource EaseOutQuint}" FillMode="Both">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="TranslateTransform.Y" Value="14" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector=":is(Panel).rise-2">
+        <Style.Animations>
+            <Animation Duration="0:0:0.55" Delay="0:0:0.14" Easing="{StaticResource EaseOutQuint}" FillMode="Both">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="TranslateTransform.Y" Value="14" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector=":is(Panel).rise-3">
+        <Style.Animations>
+            <Animation Duration="0:0:0.55" Delay="0:0:0.21" Easing="{StaticResource EaseOutQuint}" FillMode="Both">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="TranslateTransform.Y" Value="14" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector=":is(Panel).rise-4">
+        <Style.Animations>
+            <Animation Duration="0:0:0.55" Delay="0:0:0.28" Easing="{StaticResource EaseOutQuint}" FillMode="Both">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="TranslateTransform.Y" Value="14" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="TranslateTransform.Y" Value="0" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector=":is(Panel).pop">
+        <Style.Animations>
+            <Animation Duration="0:0:0.42" FillMode="Both">
+                <Animation.Easing>
+                    <SplineEasing X1="0.34" Y1="1.56" X2="0.64" Y2="1" />
+                </Animation.Easing>
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.35" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.35" />
+                </KeyFrame>
+                <KeyFrame Cue="40%">
+                    <Setter Property="Opacity" Value="1" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+    <Style Selector="Grid.window-body">
+        <Setter Property="Transitions">
+            <Transitions>
+                <EffectTransition Property="Effect" Duration="0:0:0.22" Easing="CubicEaseOut" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Grid.window-body.blurred">
+        <Setter Property="Effect" Value="blur(28)" />
+    </Style>
+    <Style Selector="Grid.window-body.blurred Button:disabled">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector=":is(Control)">
+        <Setter Property="FocusAdorner" Value="{x:Null}" />
+    </Style>
+
+    <Style Selector=":is(Panel).pop-in">
+        <Style.Animations>
+            <Animation Duration="0:0:0.5" FillMode="Both">
+                <Animation.Easing>
+                    <SpringEasing Mass="1" Stiffness="260" Damping="18" />
+                </Animation.Easing>
+                <KeyFrame Cue="0%">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="0.94" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="0.94" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleX" Value="1" />
+                    <Setter Property="ScaleTransform.ScaleY" Value="1" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="Panel.spin-fast">
+        <Style.Animations>
+            <Animation Duration="0:0:0.9" IterationCount="Infinite">
+                <KeyFrame Cue="0%">
+                    <Setter Property="RotateTransform.Angle" Value="0" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="RotateTransform.Angle" Value="360" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="c|HeroArt.breathe">
+        <Style.Animations>
+            <Animation Duration="0:0:9" IterationCount="Infinite" PlaybackDirection="Alternate"
+                       Easing="SineEaseInOut">
+                <KeyFrame Cue="0%">
+                    <Setter Property="Zoom" Value="1.22" />
+                </KeyFrame>
+                <KeyFrame Cue="100%">
+                    <Setter Property="Zoom" Value="1.3" />
+                </KeyFrame>
+            </Animation>
+        </Style.Animations>
+    </Style>
+
+    <Style Selector="ListBox.nav">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ItemContainerTheme" Value="{StaticResource NavItem}" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem c|StrokeIcon">
+        <Setter Property="RenderTransform" Value="scale(1)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.35">
+                    <TransformOperationsTransition.Easing>
+                        <SpringEasing Mass="1" Stiffness="380" Damping="16" />
+                    </TransformOperationsTransition.Easing>
+                </TransformOperationsTransition>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:selected c|StrokeIcon">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="ListBox.nav ListBoxItem:pressed c|StrokeIcon">
+        <Setter Property="RenderTransform" Value="scale(0.86)" />
+    </Style>
+
+    <Style Selector="c|StrokeIcon.tile-arrow">
+        <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}" />
+        <Setter Property="RenderTransform" Value="translateX(0px)" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3"
+                                               Easing="{StaticResource EaseOutQuint}" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Button:pointerover c|StrokeIcon.tile-arrow">
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="RenderTransform" Value="translateX(4px)" />
+    </Style>
+
+    <Style Selector="Button.danger /template/ Border#PART_Border">
+        <Setter Property="Background" Value="#E5484D" />
+    </Style>
+
+    <Style Selector="ListBox.segments">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ItemContainerTheme" Value="{StaticResource SegmentItem}" />
+    </Style>
+
+    <Style Selector="TextBox.glass">
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusControl}" />
+        <Setter Property="Padding" Value="12,9" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Style.Resources>
+            <SolidColorBrush x:Key="TextControlBackground" Color="#14FFFFFF" />
+            <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#1CFFFFFF" />
+            <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#24000000" />
+            <SolidColorBrush x:Key="TextControlBorderBrush" Color="#1FFFFFFF" />
+            <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#33FFFFFF" />
+            <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#664C6FFF" />
+            <SolidColorBrush x:Key="TextControlForeground" Color="#F3F5FA" />
+            <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#F3F5FA" />
+            <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#F3F5FA" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#6B7386" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#6B7386" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#6B7386" />
+        </Style.Resources>
+    </Style>
+    <Style Selector="TextBox.glass /template/ Border#PART_BorderElement">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BoxShadow" Value="{StaticResource ControlRim}" />
+    </Style>
+    <Style Selector="TextBox.glass:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="BoxShadow" Value="{StaticResource ControlRimHover}" />
+    </Style>
+    <Style Selector="TextBox.glass:focus-within /template/ Border#PART_BorderElement">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BoxShadow" Value="{StaticResource ControlRimHover}" />
+    </Style>
+
+    <Style Selector="ListBox.modes">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ItemContainerTheme" Value="{StaticResource ModeItem}" />
+    </Style>
+
+    <Style Selector="ListBox.swatches">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ItemContainerTheme" Value="{StaticResource SwatchItem}" />
+    </Style>
+
+    <Style Selector="ScrollBar">
+        <Setter Property="Opacity" Value="0.6" />
+    </Style>
+</Styles>

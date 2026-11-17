@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Test
+        run: dotnet test tests/SpotiKit.Tests -c Release
+
+  build:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Version from the tag
+        id: version
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') { throw "The tag ${{ github.ref_name }} isn't a version like v1.2.3." }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "prerelease=$($version.Contains('-').ToString().ToLower())" >> $env:GITHUB_OUTPUT
+
+      - name: Publish SpotiKit.exe
+        run: >
+          dotnet publish SpotiKit.csproj -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+          -p:DebugType=none -p:Version=${{ steps.version.outputs.version }} -o publish
+
+      - name: Checksum
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash publish/SpotiKit.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content publish/SpotiKit.exe.sha256 "$hash  SpotiKit.exe" -Encoding ascii -NoNewline
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: spotikit
+          path: |
+            publish/SpotiKit.exe
+            publish/SpotiKit.exe.sha256
+          retention-days: 1
+
+  release:
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/release-notes
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: spotikit
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes=".github/release-notes/${{ github.ref_name }}.md"
+          flags=(--repo "${{ github.repository }}" --title "SpotiKit ${{ needs.build.outputs.version }}")
+          if [ -f "$notes" ]; then flags+=(--notes-file "$notes"); else flags+=(--generate-notes); fi
+          if [ "${{ needs.build.outputs.prerelease }}" = "true" ]; then flags+=(--prerelease); fi
+          gh release create "${{ github.ref_name }}" SpotiKit.exe SpotiKit.exe.sha256 "${flags[@]}"

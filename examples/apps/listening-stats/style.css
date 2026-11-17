@@ -1,0 +1,67 @@
+.listening-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 32px;
+}
+
+.listening-stats-now {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 560px;
+}
+
+.listening-stats-bar {
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 4px;
+  background: var(--background-tinted-base);
+  overflow: hidden;
+}
+
+.listening-stats-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--stats-accent);
+}
+
+.listening-stats-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.listening-stats-list {
+  margin: 12px 0 0;
+  padding-inline-start: 20px;
+  color: var(--text-base);
+}
+
+.listening-stats-list li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 16px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.listening-stats-artist {
+  color: var(--text-subdued);
+}
+
+.listening-stats-remove {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-subdued);
+  cursor: pointer;
+}
+
+.listening-stats-remove:hover {
+  color: var(--text-base);
+  background: var(--background-tinted-base);
+}

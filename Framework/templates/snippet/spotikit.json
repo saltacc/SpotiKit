@@ -1,0 +1,10 @@
+{
+  "type": "snippet",
+  "name": "{{NAME}}",
+  "description": "",
+  "preview": "preview.png",
+  "authors": [],
+  "tags": [],
+  "spotify": "{{SPOTIFY}}",
+  "style": "snippet.css"
+}

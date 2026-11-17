@@ -1,0 +1,33 @@
+bin/
+obj/
+publish/
+*.user
+
+.vs/
+.vscode/
+.idea/
+.claude/
+.mcp.json
+
+Liquify V2/
+website/
+server/
+AndroidLiquidGlass-kmp/
+
+MAINTAINING.md
+classmaps/README.md
+tools/**/README.md
+
+node_modules/
+tools/api/dev-loader.js
+tools/class-map/work/
+
+/Spotify_Hero.jpg
+
+# Copied in by tools/kit/scripts/sync.mjs when the package is packed
+tools/kit/templates/
+tools/kit/data/
+tools/kit/LICENSE
+tools/create-spotikit/LICENSE
+# The CLI entry point, not a .NET build folder
+!tools/kit/bin/

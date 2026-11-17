@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SpotiKit.csproj" />
+  <Folder Name="/tests/">
+    <Project Path="tests/SpotiKit.Tests/SpotiKit.Tests.csproj" />
+  </Folder>
+</Solution>

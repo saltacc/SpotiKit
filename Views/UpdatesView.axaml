@@ -1,0 +1,209 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:SpotiKit.ViewModels"
+             xmlns:c="using:SpotiKit.Controls"
+             xmlns:sys="using:System"
+             x:Class="SpotiKit.Views.UpdatesView"
+             x:DataType="vm:UpdatesViewModel">
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <Border Classes="page">
+            <StackPanel Spacing="18">
+
+                <StackPanel Spacing="6" Classes="rise" Margin="4,4,0,4">
+                    <TextBlock Classes="h1" Text="Updates" />
+                    <TextBlock Classes="body" MaxWidth="600" HorizontalAlignment="Left"
+                               Text="Spotify updates, supported versions and SpotiKit updates." />
+                </StackPanel>
+
+                <Panel Classes="rise-1">
+                    <c:GlassCard Padding="26,22">
+                        <StackPanel Spacing="18">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                                <Border Classes="icon-tile" Width="46" Height="46" CornerRadius="14" VerticalAlignment="Top">
+                                    <c:StrokeIcon Data="{StaticResource IconLock}" Width="20" Height="20" />
+                                </Border>
+                                <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                    <TextBlock Classes="caption" Text="Spotify updates" />
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <c:StatusIndicator Kind="{Binding HoldStatus}" VerticalAlignment="Center" />
+                                        <TextBlock Classes="h2" FontSize="19" Text="{Binding HoldTitle}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border Classes="subcard" Padding="16,14">
+                                <StackPanel Spacing="8">
+                                    <TextBlock Text="Details" FontWeight="SemiBold" FontSize="12.5" Foreground="{StaticResource TextSecondaryBrush}" />
+                                    <ItemsControl ItemsSource="{Binding Reasons}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="sys:String">
+                                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" Margin="0,2">
+                                                    <Ellipse Width="5" Height="5" Fill="{DynamicResource AccentBrush}" VerticalAlignment="Top" Margin="0,7,0,0" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap" FontSize="12.5" LineHeight="18" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <Rectangle Classes="divider" />
+
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Which updates Spotify gets" FontWeight="SemiBold" FontSize="13" />
+                                <ListBox Classes="modes" Margin="-5,0" ItemsSource="{x:Static vm:UpdatesViewModel.Modes}" SelectedItem="{Binding SelectedMode}">
+                                    <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Rows="1" />
+                                        </ItemsPanelTemplate>
+                                    </ListBox.ItemsPanel>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:UpdateModeOption">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="13" TextWrapping="Wrap" />
+                                                <TextBlock Classes="caption" Text="{Binding Text}" TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </StackPanel>
+
+                            <Border Classes="subcard" IsVisible="{Binding Message, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <c:StatusIndicator Kind="{Binding MessageStatus}" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="12.5" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </c:GlassCard>
+                </Panel>
+
+                <Grid Classes="rise-2" ColumnDefinitions="*,*" ColumnSpacing="16">
+
+                    <c:GlassCard Grid.Column="0" VerticalAlignment="Top">
+                        <StackPanel Spacing="14" DataContext="{Binding Versions}" x:DataType="vm:SpotifyVersionsViewModel">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Classes="h2" Text="Supported Spotify versions" />
+                                    <TextBlock Classes="caption" TextWrapping="Wrap"
+                                               Text="Spotify versions SpotiKit is tested with. The list updates on its own." />
+                                </StackPanel>
+                                <Button Grid.Column="1" Theme="{StaticResource IconButton}" VerticalAlignment="Top"
+                                        Command="{Binding RefreshCommand}" c:GlassToolTip.Tip="Check again">
+                                    <Panel Classes.spin-fast="{Binding IsRefreshing}">
+                                        <c:StrokeIcon Data="{StaticResource IconRefresh}" Width="14" Height="14" />
+                                    </Panel>
+                                </Button>
+                            </Grid>
+
+                            <ItemsControl ItemsSource="{Binding Rows}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:SpotifyVersionRow">
+                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" Margin="0,5">
+                                            <c:StatusIndicator Kind="{Binding Status}" VerticalAlignment="Top" Margin="0,4,0,0" />
+                                            <StackPanel Grid.Column="1" Spacing="1">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock Text="{Binding Version}" FontWeight="SemiBold" FontSize="13" />
+                                                    <Border Classes="subcard" Padding="7,1" CornerRadius="8" IsVisible="{Binding IsCurrent}">
+                                                        <TextBlock Text="Installed" FontSize="11" FontWeight="SemiBold" />
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding Detail}" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Rectangle Classes="divider" />
+                            <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding SourceText}" />
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" IsVisible="{Binding HasProblem}">
+                                <c:StatusIndicator Kind="Warning" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Classes="caption" TextWrapping="Wrap" Text="{Binding Problem}" />
+                            </Grid>
+                        </StackPanel>
+                    </c:GlassCard>
+
+                    <c:GlassCard Grid.Column="1" VerticalAlignment="Top">
+                        <StackPanel Spacing="14">
+                            <StackPanel Spacing="2">
+                                <TextBlock Classes="h2" Text="SpotiKit" />
+                                <TextBlock Classes="caption" TextWrapping="Wrap"
+                                           Text="Updates install on their own." />
+                            </StackPanel>
+
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                                <Border Classes="subcard">
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Classes="caption" Text="This app" />
+                                        <TextBlock Text="{Binding AppVersion}" FontWeight="SemiBold" FontSize="13.5" />
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="1" Classes="subcard">
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Classes="caption" Text="Installed in Spotify" />
+                                        <TextBlock Text="{Binding InstalledFrameworkText}" FontWeight="SemiBold" FontSize="13.5" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <Border Classes="subcard" IsVisible="{Binding SpotifyFrameworkIsOutdated}">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                    <TextBlock Classes="caption" TextWrapping="Wrap" VerticalAlignment="Center"
+                                               Text="Spotify still runs the older version. Reinstall to update it." />
+                                    <Button Grid.Column="1" Padding="14,9" Command="{Binding UpdateSpotifyFrameworkCommand}">
+                                        <TextBlock Text="Update Spotify" />
+                                    </Button>
+                                </Grid>
+                            </Border>
+
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center"
+                                            IsVisible="{Binding CheckMessage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <c:StatusIndicator Kind="{Binding CheckStatus}" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding CheckMessage}" TextWrapping="Wrap" FontSize="12.5" MaxWidth="260" />
+                                </StackPanel>
+                                <Button AutomationProperties.Name="Check" Grid.Column="1" Command="{Binding CheckCommand}" Padding="14,9">
+                                    <StackPanel Orientation="Horizontal" Spacing="7">
+                                        <Panel Classes.spin-fast="{Binding IsChecking}">
+                                            <c:StrokeIcon Data="{StaticResource IconRefresh}" Width="14" Height="14" />
+                                        </Panel>
+                                        <TextBlock Text="Check" />
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <Border Classes="subcard" IsVisible="{Binding HasUpdate}">
+                                <StackPanel Spacing="10">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                        <TextBlock Text="{Binding LatestText}" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                            <Button Theme="{StaticResource IconButton}" Command="{Binding OpenReleasesCommand}"
+                                                    c:GlassToolTip.Tip="Open the release on GitHub">
+                                                <c:StrokeIcon Data="{StaticResource IconLink}" Width="14" Height="14" />
+                                            </Button>
+                                            <Button Theme="{StaticResource PrimaryButton}" Padding="14,9"
+                                                    Command="{Binding UpdateAppCommand}" IsVisible="{Binding !IsDownloading}">
+                                                <TextBlock Text="Update and restart" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                    <TextBlock Classes="caption" TextWrapping="Wrap" Text="{Binding LatestNotes}"
+                                               IsVisible="{Binding LatestNotes, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                    <StackPanel Spacing="6" IsVisible="{Binding IsDownloading}">
+                                        <ProgressBar Minimum="0" Maximum="1" Value="{Binding DownloadProgress}" />
+                                        <TextBlock Classes="caption" Text="{Binding DownloadText}" />
+                                    </StackPanel>
+                                    <TextBlock Classes="caption" TextWrapping="Wrap" Foreground="{StaticResource WarningBrush}"
+                                               Text="{Binding CannotUpdateReason}"
+                                               IsVisible="{Binding CannotUpdateReason, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </c:GlassCard>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </ScrollViewer>
+</UserControl>
