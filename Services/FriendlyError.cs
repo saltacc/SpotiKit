@@ -14,11 +14,11 @@ public static class FriendlyError
     public static (string Message, string? Hint) Describe(Exception exception) => exception switch
     {
         UnauthorizedAccessException =>
-            ("Windows denied access to a Spotify file.",
+            ("Access to a Spotify file was denied.",
              "Close Spotify and try again. If it keeps happening, check that your user account can write to the Spotify folder."),
         IOException io when io.HResult is SharingViolation or LockViolation =>
             ("A Spotify file is in use by another program.",
-             "Spotify is probably still running in the background. Close it completely (including the tray icon) and try again."),
+             "Spotify is probably still running in the background. Quit Spotify completely and try again."),
         IOException io when io.HResult == DiskFull =>
             ("There is not enough free disk space.", "Free up some space and try again."),
         InvalidDataException data =>

@@ -78,7 +78,7 @@ public class AppUpdateServiceTests
         Assert.False(same.IsNewer);
     }
 
-    [Fact]
+    [WindowsFact]
     public async Task An_update_replaces_the_program_only_when_the_checksum_matches()
     {
         using var box = new Sandbox(index: null);
@@ -213,7 +213,11 @@ public class SpotifyVersionListTests
     [Fact]
     public void The_list_in_the_repository_is_valid_and_approves_the_mapped_versions()
     {
-        var path = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "compatibility", "spotify-versions.json");
+        var repository = new DirectoryInfo(AppContext.BaseDirectory);
+        while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "SpotiKit.csproj")))
+            repository = repository.Parent;
+        Assert.NotNull(repository);
+        var path = Path.Combine(repository!.FullName, "compatibility", "spotify-versions.json");
         var versions = SpotifyVersionListService.Parse(File.ReadAllText(path));
         foreach (var v in versions.Where(v => v.Status == SpotifyVersionStatus.Approved && !v.NeedsNewerApp(AppInfo.Version)))
             Assert.NotEmpty(ClassMapCatalog.Bundled.For(v.Version));

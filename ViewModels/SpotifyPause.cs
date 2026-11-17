@@ -6,7 +6,7 @@ namespace SpotiKit.ViewModels;
 
 public sealed class SpotifyPause(SpotifyService service, SpotifyStatusViewModel spotify, ActivityLog log)
 {
-    public const string StillRunning = "Spotify didn't close. Quit it from the tray icon (right-click, Quit) and try again.";
+    public static string StillRunning => $"Spotify didn't close. {SpotifyService.QuitHint}";
 
     public async Task<bool?> CloseAsync(string reason)
     {
@@ -20,7 +20,7 @@ public sealed class SpotifyPause(SpotifyService service, SpotifyStatusViewModel 
         if (!spotify.IsRunning)
             return true;
 
-        log.Warning("Spotify", "Spotify is still running.", "Quit it from the tray icon (right-click, Quit) and try again.");
+        log.Warning("Spotify", "Spotify is still running.", SpotifyService.QuitHint);
         return null;
     }
 

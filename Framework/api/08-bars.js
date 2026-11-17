@@ -56,16 +56,19 @@
     topbarLeft: {
       container: ".global-nav-bar-history-buttons",
       sibling: ".global-nav-bar-history-buttons button",
+      anchor: '[data-testid="top-bar-back-button"]',
       insert: "append",
     },
     topbarRight: {
       container: ".global-nav-bar-actions",
       sibling: ".global-nav-bar-actions button:not(.user-widget-button)",
+      anchor: '[data-testid="user-widget-link"]',
       insert: "prepend",
     },
     playbar: {
       container: ".now-playing-bar-extra-controls",
       sibling: ".now-playing-bar-extra-controls button.lyrics-button:not(.now-playing-bar-extra-button)",
+      anchor: '[data-testid="control-button-queue"]',
       insert: "prepend",
     },
     widget: {
@@ -73,7 +76,8 @@
       sibling: ".now-playing-widget-actions button",
       insert: "append",
     },
-    nav: { container: ".global-nav-bar-search-area", sibling: ".global-nav-home-button", insert: "afterSibling" },
+    nav: { container: ".global-nav-bar-search-area", sibling: ".global-nav-home-button",
+      anchor: '[data-testid="home-button"]', insert: "afterSibling" },
   };
   var mounted = {
     topbarLeft: new Set(),
@@ -84,7 +88,10 @@
   };
 
   function siblingClasses(place) {
-    var sibling = document.querySelector(places[place].sibling);
+    var definition = places[place];
+    var sibling = Array.from(document.querySelectorAll(definition.sibling)).find(function (element) {
+      return !element.hasAttribute("data-spotikit");
+    }) || (definition.anchor && document.querySelector(definition.anchor));
     if (!sibling) {
       return null;
     }
@@ -100,7 +107,9 @@
       if (mounted[where].size === 0) {
         return;
       }
-      var container = document.querySelector(places[where].container);
+      var definition = places[where];
+      var anchorButton = definition.anchor && document.querySelector(definition.anchor);
+      var container = document.querySelector(definition.container) || (anchorButton && anchorButton.parentElement);
       if (!container) {
         return;
       }
@@ -121,7 +130,9 @@
       var nodes = missing.map(function (button) {
         return button.element;
       });
-      var anchor = places[where].insert === "afterSibling" && container.querySelector(places[where].sibling);
+      var anchor = definition.insert === "afterSibling" &&
+        (container.querySelector(definition.sibling) ||
+          (anchorButton && anchorButton.parentElement === container ? anchorButton : null));
       if (anchor) {
         var after = anchor;
         buttons.forEach(function (button) {

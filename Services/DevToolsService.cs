@@ -31,7 +31,7 @@ public sealed partial class DevToolsService(SpotiKitPaths paths, SpotifyService 
     [GeneratedRegex(@"app-developer\x09\x01([0-9])x\x01")]
     private static partial Regex BinaryFlag();
 
-    public string BnkPath => Path.Combine(paths.SpotifyLocalDataDir, "offline.bnk");
+    public string BnkPath => paths.SpotifyOfflineBnkPath;
 
     private string BackupDir => Path.Combine(paths.DataRoot, "DevTools");
 

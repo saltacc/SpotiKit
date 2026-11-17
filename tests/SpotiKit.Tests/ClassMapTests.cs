@@ -169,7 +169,7 @@ public class ClassMapTests
             """{"schemaVersion":1,"spotify":{"1.0":[{"generated":"Abcdef","stable":"card__title--active"}]}}""").For("1.0"));
     }
 
-    [Fact]
+    [WindowsFact]
     public void Real_client_copy_gets_the_mapping_and_returns_to_its_original_content()
     {
         var (real, version) = RealClientForBundledMap();

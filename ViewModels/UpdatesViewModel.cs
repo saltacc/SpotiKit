@@ -52,6 +52,8 @@ public partial class UpdatesViewModel : ViewModelBase
     public SpotifyVersionsViewModel Versions { get; }
     public InstallViewModel Install { get; }
 
+    public bool CanManageSpotifyUpdates => OperatingSystem.IsWindows() && Spotify.IsDesktopEdition;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HoldTitle), nameof(HoldStatus), nameof(Reasons), nameof(StagedText), nameof(HasStaged),
         nameof(StagedVerdict))]
@@ -82,7 +84,7 @@ public partial class UpdatesViewModel : ViewModelBase
         get => _mode;
         set
         {
-            if (value is null || value == _mode || _switching)
+            if (!CanManageSpotifyUpdates || value is null || value == _mode || _switching)
                 return;
             var previous = _mode;
             _mode = value;
@@ -120,6 +122,7 @@ public partial class UpdatesViewModel : ViewModelBase
     public void Refresh()
     {
         Status = _updates.GetStatus(Spotify.Installation);
+        OnPropertyChanged(nameof(CanManageSpotifyUpdates));
         OnPropertyChanged(nameof(Reasons));
         OnPropertyChanged(nameof(StagedVerdict));
         OnPropertyChanged(nameof(InstalledFrameworkText));
@@ -209,7 +212,9 @@ public partial class UpdatesViewModel : ViewModelBase
                 reasons.Add("Updates are held again right after, and SpotiKit is added back.");
                 break;
             case { State: UpdateHoldState.NotSupported }:
-                reasons.Add(Spotify.Installation.Edition == SpotifyEdition.MicrosoftStore
+                reasons.Add(Spotify.IsDesktopEdition && !OperatingSystem.IsWindows()
+                    ? "Spotify manages its own updates on this platform. After an update, check compatibility and reapply SpotiKit."
+                    : Spotify.Installation.Edition == SpotifyEdition.MicrosoftStore
                     ? "The Microsoft Store version updates through the Store."
                     : "Spotify wasn't found.");
                 break;

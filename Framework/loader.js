@@ -97,7 +97,7 @@
   }
 
   var selectorCache = new Map();
-  var classToken = /.(-?[_a-zA-Z][_a-zA-Z0-9-]*)/g;
+  var classToken = /\.(-?[_a-zA-Z][_a-zA-Z0-9-]*)/g;
 
   function translateSelector(selector) {
     if (typeof selector !== "string" || selector.indexOf(".") < 0) {
@@ -135,7 +135,7 @@
         this,
         typeof names === "string"
           ? names
-              .split(/s+/)
+              .split(/\s+/)
               .map(function (n) {
                 return map.get(n) || n;
               })
@@ -273,6 +273,10 @@
     ["channel", "{{CHANNEL}}"],
     ["loadedAt", new Date().toISOString()],
     ["classMap", Object.freeze(Object.assign({}, classMap))],
+    ["build", Object.freeze(Object.assign({}, window.__spotikitBuild || {}))],
+    ["mappingProfile", window.__spotikitProfile || null],
+    ["mappingSourceVersion", window.__spotikitMappingSourceVersion || null],
+    ["mappingIsFallback", window.__spotikitMappingIsFallback === true],
   ].forEach(function (fact) {
     Object.defineProperty(SpotiKit, fact[0], { value: fact[1], enumerable: true });
   });

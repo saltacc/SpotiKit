@@ -18,6 +18,9 @@ sealed class Program
         if (args is ["--background", ..] && OperatingSystem.IsWindows())
             return RunBackground(once: args.Contains("--once"));
 
+        if (OperatingSystem.IsMacOS())
+            return MacDesktopStartup.Run(() => BuildAvaloniaApp().StartWithClassicDesktopLifetime(args), ReportStartup);
+
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         return 0;
     }
@@ -30,6 +33,19 @@ sealed class Program
 #endif
             .WithInterFont()
             .LogToTrace();
+
+    private static void ReportStartup(string message)
+    {
+        Console.Error.WriteLine(message);
+        try
+        {
+            new ActivityLog(SpotiKitPaths.FromEnvironment()).Warning("Startup", message);
+        }
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
+        {
+            // Startup diagnostics must also work when the user's log directory is unavailable.
+        }
+    }
 
     private static int RunDevTools(string command)
     {

@@ -37,7 +37,7 @@ public static class SpotifyPage
             return;
         status?.Invoke("Restarting Spotify…");
         if (spotify.IsRunning() && !await spotify.CloseAsync(TimeSpan.FromSeconds(5), cancellationToken))
-            throw new InvalidOperationException("Spotify didn't close. Quit it from the tray icon and try again.");
+            throw new InvalidOperationException($"Spotify didn't close. {SpotifyService.QuitHint}");
         spotify.Launch(client, $"--remote-debugging-port={Port}");
         var deadline = DateTime.UtcNow.AddSeconds(40);
         while (!await ListensAsync())

@@ -11,7 +11,10 @@ namespace SpotiKit.Services;
 
 public sealed record InstallStepInfo(string Title, string Description);
 
-public sealed record InstallProgress(int StepIndex, double StepFraction);
+public sealed record InstallProgress(int StepIndex, double StepFraction)
+{
+    public IReadOnlyList<InstallStepInfo>? Plan { get; init; }
+}
 
 public sealed record OperationResult(bool Succeeded, string Message);
 
@@ -32,13 +35,26 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
 
     private readonly SemaphoreSlim _gate = new(1, 1);
 
-    public static IReadOnlyList<InstallStepInfo> InstallPlan { get; } =
+    private static IReadOnlyList<InstallStepInfo> StandardInstallPlan { get; } =
     [
         new("Checking Spotify", "Version, files and free space"),
         new("Backing up", "Saving a copy of Spotify's files"),
         new("Installing", "Adding SpotiKit to Spotify"),
         new("Checking", "Making sure everything is in place"),
     ];
+
+    private static IReadOnlyList<InstallStepInfo> MacInstallPlan { get; } =
+    [
+        .. StandardInstallPlan.Take(3),
+        new("Signing Spotify", "Signing the app locally and verifying its signature"),
+        StandardInstallPlan[3],
+    ];
+
+    public static IReadOnlyList<InstallStepInfo> InstallPlan =>
+        OperatingSystem.IsMacOS() ? MacInstallPlan : StandardInstallPlan;
+
+    public static IReadOnlyList<InstallStepInfo> InstallPlanFor(SpotifyInstallation client) =>
+        IsMacBundle(client) || OperatingSystem.IsMacOS() && !client.IsInstalled ? MacInstallPlan : StandardInstallPlan;
 
     public static IReadOnlyList<InstallStepInfo> UninstallPlan { get; } =
     [
@@ -66,6 +82,10 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
             return $"{string.Join(" and ", xpui.ForeignMods)} is installed. Remove it first.";
         if (s.IsRunning)
             return "Spotify is running. Close it first.";
+        if (OperatingSystem.IsMacOS() && s.InstallPath is { } resources &&
+            MacApplicationBundle.FromResources(resources) is { } bundle && MacBundleFiles.IsComplete(bundle) &&
+            (s.Version is null || s.Build?.ResourceFingerprint is null || s.Build.Architecture == "unknown"))
+            return "This Mac Spotify bundle could not be identified. Restore or reinstall Spotify before changing it.";
         if (InsufficientSpace(s) is { } space)
             return space;
         return null;
@@ -83,12 +103,14 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
             ? $"{package.Version} (new)"
             : installed != package.Version ? $"{installed} → {package.Version}"
             : sameFiles ? $"{package.Version} (same files, repaired)" : $"{package.Version} (changed since the last install)"));
-        changes.Add(new("Spotify", client.Version ?? "unknown version", "Not updated or changed in any other way"));
+        changes.Add(new("Spotify", client.Version ?? "unknown version", "The installed Spotify version is kept"));
 
-        var mappings = (classMaps ?? ClassMapCatalog.Bundled).For(client.Version);
+        var selected = (classMaps ?? ClassMapCatalog.Bundled).Select(client);
+        var mappings = selected.Mappings;
         changes.Add(new("Class names", mappings.Count > 0
-            ? $"{mappings.Count} stable names for this Spotify version"
-            : "None for this Spotify version", mappings.Count > 0 ? null : "Themes that rely on them may look off"));
+            ? selected.IsFallback ? $"{mappings.Count} candidate names from Spotify {selected.Profile!.SpotifyVersion}"
+                : $"{mappings.Count} stable names for this Spotify version"
+            : "No verified mapping for this build", selected.Description));
 
         if (addons is not null)
         {
@@ -108,7 +130,8 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
 
         if (client.XpuiPath is not null)
             changes.Add(new("Changed file", Path.GetFileName(client.XpuiPath) + $" ({Megabytes(client.XpuiPath)})",
-                "Backed up first. Nothing else in Spotify's folder is touched."));
+                IsMacBundle(client) ? "The complete app is backed up and signed locally after installing."
+                    : "Backed up first. Nothing else in Spotify's folder is touched."));
         return changes;
     }
 
@@ -120,7 +143,8 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
         {
             var client = await StepAsync(0, progress, cancellationToken, () =>
             {
-                var current = spotify.Detect();
+                var current = spotify.Detect(freshBuild: true);
+                RequireCompleteNativeMacTarget(current);
                 if (InstallBlocker(current) is { } blocker)
                     throw new InvalidOperationException(blocker);
                 log.Info(Install, $"Spotify {current.Version} (desktop) at {current.InstallPath}");
@@ -129,6 +153,8 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
                 return current;
             }).ConfigureAwait(false);
 
+            var macTransaction = IsMacBundle(client);
+            progress.Report(new InstallProgress(0, 1) { Plan = InstallPlanFor(client) });
             var backup = await StepAsync(1, progress, cancellationToken, () =>
             {
                 var created = backups.Create(client, BackupKind.Automatic);
@@ -138,34 +164,71 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
                 return created;
             }).ConfigureAwait(false);
 
+            string? published = null;
+            MacBundleTransaction? transaction = null;
             try
             {
-                var classMap = await StepAsync(2, progress, CancellationToken.None, () =>
+                var prepared = await StepAsync(2, progress, CancellationToken.None, () =>
                 {
-                    var mappings = (classMaps ?? ClassMapCatalog.Bundled).For(client.Version);
+                    var selected = (classMaps ?? ClassMapCatalog.Bundled).Select(client);
+                    var mappings = selected.Mappings;
                     var addonSet = addons?.Load(client.Version) ?? AddonSet.Empty;
-                    var result = XpuiPatcher.Inject(client.XpuiPath!, package.LoaderScript, package.Version, mappings, client.Version, addonSet);
-                    log.Info(Install, $"SpotiKit {package.Version} added");
-                    LogClassMap(result, mappings.Count);
-                    LogAddons(addonSet);
-                    return result;
+                    ClassMapResult Patch(SpotifyInstallation target)
+                    {
+                        var applied = XpuiPatcher.Inject(target.XpuiPath!, package.LoaderScript, package.Version, mappings, client.Version, addonSet, selected);
+                        if (XpuiPatcher.ReadLoader(target.XpuiPath!) is not { } installedLoader ||
+                            FileHash.Sha256(System.Text.Encoding.UTF8.GetBytes(installedLoader)) != package.LoaderSha256)
+                            throw new InvalidDataException("The staged loader does not match the package.");
+                        return applied;
+                    }
+                    ClassMapResult result;
+                    if (macTransaction)
+                    {
+                        if (backup.Manifest.BundleFingerprint is null)
+                            throw new IOException("The complete Mac recovery snapshot is missing. Recheck compatibility and retry.");
+                        transaction = new MacBundleTransaction(client, spotify.IsRunning,
+                            expectedFingerprint: backup.Manifest.BundleFingerprint);
+                        result = Patch(transaction.WorkingClient);
+                    }
+                    else
+                        result = Mutate(client, false, Patch);
+                    return (Classes: result, Selection: selected, Addons: addonSet);
                 }).ConfigureAwait(false);
 
-                await StepAsync(3, progress, CancellationToken.None, () =>
+                if (transaction is not null)
+                    await StepAsync(3, progress, CancellationToken.None, () =>
+                    {
+                        log.Info(Install, "Signing the Mac Spotify app locally…");
+                        transaction.Commit();
+                        published = transaction.PublishedFingerprint;
+                        LogRetainedRecovery(transaction);
+                        log.Success(Install, "The Mac Spotify bundle was signed locally and its complete signature verified.");
+                        return true;
+                    }).ConfigureAwait(false);
+
+                if (prepared.Selection.IsFallback)
+                    log.Warning(Install, prepared.Selection.Description);
+                else
+                    log.Info(Install, prepared.Selection.Description);
+                log.Info(Install, $"SpotiKit {package.Version} added");
+                LogClassMap(prepared.Classes, prepared.Selection.Mappings.Count);
+                LogAddons(prepared.Addons);
+
+                await StepAsync(macTransaction ? 4 : 3, progress, CancellationToken.None, () =>
                 {
                     var check = XpuiPatcher.Inspect(client.XpuiPath!);
                     var loader = XpuiPatcher.ReadLoader(client.XpuiPath!);
                     if (!check.HasSpotiKit || loader is null ||
                         FileHash.Sha256(System.Text.Encoding.UTF8.GetBytes(loader)) != package.LoaderSha256)
                         throw new InvalidDataException("The installed loader does not match the package.");
-                    if (classMap.Applied.Count > 0 &&
-                        XpuiPatcher.ReadClassMap(client.XpuiPath!)?.Applied.Count != classMap.Applied.Count)
+                    if (prepared.Classes.Applied.Count > 0 &&
+                        XpuiPatcher.ReadClassMap(client.XpuiPath!)?.Applied.Count != prepared.Classes.Applied.Count)
                         throw new InvalidDataException("The class map in the client does not match what was applied.");
 
                     state.Update(s => s with
                     {
                         Install = new InstallRecord(package.Version, package.Channel, DateTimeOffset.Now,
-                            client.Version ?? "unknown", backup.Manifest.Id, package.LoaderSha256),
+                            client.Version ?? "unknown", backup.Manifest.Id, package.LoaderSha256) { Build = client.Build },
                     });
                     log.Success(Install, $"SpotiKit {package.Version} is installed. It loads the next time Spotify starts.");
                     return true;
@@ -173,8 +236,12 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
             }
             catch (Exception ex)
             {
-                RollBack(Install, backup, ex);
+                RollBackPublished(Install, client, backup, published, macTransaction, ex);
                 throw;
+            }
+            finally
+            {
+                transaction?.Dispose();
             }
 
             return new OperationResult(true, $"SpotiKit {package.Version} installed.");
@@ -186,7 +253,8 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
         {
             var client = await StepAsync(0, progress, cancellationToken, () =>
             {
-                var current = spotify.Detect();
+                var current = spotify.Detect(freshBuild: true);
+                RequireCompleteNativeMacTarget(current);
                 if (current is not { Edition: SpotifyEdition.Desktop, XpuiKind: XpuiKind.Spa, XpuiPath: not null })
                     throw new InvalidOperationException("The Spotify desktop client with its standard files was not found.");
                 if (!current.HasSpotiKit)
@@ -197,6 +265,7 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
                 return current;
             }).ConfigureAwait(false);
 
+            var macTransaction = IsMacBundle(client);
             var backup = await StepAsync(1, progress, cancellationToken, () =>
             {
                 var created = backups.Create(client, BackupKind.Automatic);
@@ -205,11 +274,27 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
                 return created;
             }).ConfigureAwait(false);
 
+            string? published = null;
             try
             {
                 await StepAsync(2, progress, CancellationToken.None, () =>
                 {
-                    XpuiPatcher.Remove(client.XpuiPath!);
+                    var original = backups.FindPristine(client);
+                    if (macTransaction && original?.Manifest.FullBundle == true)
+                    {
+                        backups.Restore(original, client, fingerprint => published = fingerprint,
+                            expectedFingerprint: backup.Manifest.BundleFingerprint);
+                        if (XpuiPatcher.Inspect(client.XpuiPath!).HasSpotiKit)
+                            throw new InvalidDataException("The restored original bundle still contains SpotiKit.");
+                    }
+                    else
+                        Mutate(client, macTransaction, target =>
+                        {
+                            XpuiPatcher.Remove(target.XpuiPath!);
+                            if (XpuiPatcher.Inspect(target.XpuiPath!).HasSpotiKit)
+                                throw new InvalidDataException("SpotiKit is still in the staged archive.");
+                            return true;
+                        }, fingerprint => published = fingerprint, backup.Manifest.BundleFingerprint);
                     log.Info(Uninstall, "SpotiKit removed from Spotify's files");
                     if (devTools is not null && state.Load().DevTools is not null)
                         log.Info(Uninstall, devTools.Disable());
@@ -218,7 +303,7 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
 
                 await StepAsync(3, progress, CancellationToken.None, () =>
                 {
-                    if (backups.FindPristine(client.Version) is { } original)
+                    if (backups.FindPristine(client) is { } original)
                     {
                         var originalSpa = Path.Combine(original.Directory, "files", original.Manifest.Files[0].RelativePath);
                         var differing = XpuiPatcher.DifferingEntries(originalSpa, client.XpuiPath!);
@@ -240,7 +325,7 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
             }
             catch (Exception ex)
             {
-                RollBack(Uninstall, backup, ex);
+                RollBackPublished(Uninstall, client, backup, published, macTransaction, ex);
                 throw;
             }
 
@@ -250,7 +335,11 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
     public Task<OperationResult> RestoreAsync(BackupInfo backup) =>
         RunExclusiveAsync(Restore, () => Task.Run(() =>
         {
-            var client = spotify.Detect();
+            var client = spotify.Detect(freshBuild: true);
+            var macTransaction = IsMacBundle(client);
+            RequireCompleteNativeMacTarget(client);
+            var expectedBundle = macTransaction
+                ? MacBundleFiles.Fingerprint(MacApplicationBundle.FromResources(client.InstallPath!)!) : null;
             if (BackupService.RestoreBlocker(backup, client) is { } blocker)
                 throw new InvalidOperationException(blocker);
             if (!backups.Verify(backup, out var problem))
@@ -259,7 +348,8 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
             log.Info(Restore, $"Restoring backup {backup.Manifest.Id} (Spotify {backup.Manifest.SpotifyVersion})");
 
             BackupInfo? safety = null;
-            if (client.XpuiPath is not null && FileHash.Sha256(client.XpuiPath) != backup.Manifest.Files[0].Sha256)
+            if (client.XpuiPath is not null && (FileHash.Sha256(client.XpuiPath) != backup.Manifest.Files[0].Sha256 ||
+                macTransaction && expectedBundle != backup.Manifest.BundleFingerprint))
             {
                 safety = backups.Create(client, BackupKind.Automatic);
                 log.Info(Restore, $"Current state saved as backup {safety.Manifest.Id} first");
@@ -267,11 +357,11 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
 
             try
             {
-                backups.Restore(backup, client);
+                backups.Restore(backup, client, expectedFingerprint: safety?.Manifest.BundleFingerprint ?? expectedBundle);
             }
             catch (Exception ex)
             {
-                if (safety is not null)
+                if (safety is not null && !macTransaction)
                     RollBack(Restore, safety, ex);
                 throw;
             }
@@ -316,6 +406,7 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
     {
         cancellationToken.ThrowIfCancellationRequested();
         var clock = Stopwatch.StartNew();
+        progress.Report(new InstallProgress(index, 0));
         var task = Task.Run(work);
 
         while (!task.IsCompleted || clock.Elapsed < MinimumStepTime)
@@ -338,12 +429,12 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
         return result;
     }
 
-    private void RollBack(string operation, BackupInfo backup, Exception cause)
+    private void RollBack(string operation, BackupInfo backup, Exception cause, string? expectedFingerprint = null)
     {
         log.Warning(operation, $"Something went wrong ({FriendlyError.Describe(cause).Message}). Rolling back to backup {backup.Manifest.Id}…");
         try
         {
-            backups.Restore(backup, spotify.Detect());
+            backups.Restore(backup, spotify.Detect(freshBuild: true), expectedFingerprint: expectedFingerprint);
             log.Success(operation, "Rolled back: Spotify is exactly as it was before.");
         }
         catch (Exception rollbackError)
@@ -354,11 +445,67 @@ public sealed class InstallerService(SpotifyService spotify, BackupService backu
         }
     }
 
+    private static bool IsMacBundle(SpotifyInstallation client) => OperatingSystem.IsMacOS() &&
+        client.InstallPath is { } resources && MacApplicationBundle.FromResources(resources) is { } bundle &&
+        MacBundleFiles.IsComplete(bundle);
+
+    private void RequireCompleteNativeMacTarget(SpotifyInstallation client)
+    {
+        if (OperatingSystem.IsMacOS() && !spotify.IsSandboxed && client.InstallPath is { } resources &&
+            MacApplicationBundle.FromResources(resources) is { } bundle && !MacBundleFiles.IsComplete(bundle))
+            throw new InvalidOperationException("Spotify's Mac app is incomplete. Reinstall the complete Spotify app before changing it.");
+        if (MacInstallPreflight.Problem(client) is { } problem)
+            throw new InvalidOperationException(problem);
+    }
+
+    private void RollBackPublished(string operation, SpotifyInstallation client, BackupInfo backup, string? published,
+        bool macTransaction, Exception failure)
+    {
+        if (!macTransaction) { RollBack(operation, backup, failure); return; }
+        if (published is null) return; // The transaction owns recovery before a successful publication.
+        var bundle = MacApplicationBundle.FromResources(client.InstallPath!)!;
+        string? actual = null;
+        try { actual = MacBundleFiles.Fingerprint(bundle); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+        if (actual == published)
+            RollBack(operation, backup, failure, published);
+        else
+            log.Warning(operation, "Spotify changed after publication. The newer app was left untouched.",
+                $"The pre-operation recovery copy is backup {backup.Manifest.Id}.");
+    }
+
+    private T Mutate<T>(SpotifyInstallation client, bool macTransaction, Func<SpotifyInstallation, T> change,
+        Action<string>? onPublished = null, string? expectedFingerprint = null)
+    {
+        if (!macTransaction)
+        {
+            if (IsMacBundle(client)) throw new IOException("Spotify changed into a complete app during this operation. Recheck compatibility and retry.");
+            return change(client);
+        }
+        if (expectedFingerprint is null)
+            throw new IOException("The complete Mac recovery snapshot is missing. Recheck compatibility and retry.");
+        using var transaction = new MacBundleTransaction(client, spotify.IsRunning, expectedFingerprint: expectedFingerprint);
+        var result = change(transaction.WorkingClient);
+        transaction.Commit();
+        LogRetainedRecovery(transaction);
+        onPublished?.Invoke(transaction.PublishedFingerprint!);
+        log.Success(Install, "The Mac Spotify bundle was signed locally and its complete signature verified.");
+        return result;
+    }
+
+    private void LogRetainedRecovery(MacBundleTransaction transaction)
+    {
+        if (transaction.RetentionMessage is { } message)
+            log.Warning("Spotify recovery", message);
+    }
+
     private static string? InsufficientSpace(SpotifyInstallation s)
     {
         try
         {
-            var size = new FileInfo(s.XpuiPath!).Length;
+            var size = IsMacBundle(s)
+                ? MacBundleFiles.Size(MacApplicationBundle.FromResources(s.InstallPath!)!)
+                : new FileInfo(s.XpuiPath!).Length;
             var root = Path.GetPathRoot(s.XpuiPath);
             if (string.IsNullOrEmpty(root))
                 return null;

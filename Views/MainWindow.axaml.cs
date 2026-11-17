@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using SpotiKit.Controls;
@@ -13,9 +14,52 @@ namespace SpotiKit.Views;
 
 public partial class MainWindow : Window
 {
+    // macOS title bar: a toolbar-height bar so the native traffic lights sit vertically centred,
+    // with the branding pushed past them. The lights span about x=10..72 depending on the bar style.
+    private const double MacTitleBarHeight = 52;
+    private const double MacTrafficLightInset = 84;
+    private const double ContentInset = 20;
+
     public MainWindow()
     {
         InitializeComponent();
+        ApplyPlatformChrome();
+    }
+
+    private void ApplyPlatformChrome()
+    {
+        if (!OperatingSystem.IsMacOS())
+            return;
+
+        // The native traffic lights stay; the Windows-style caption buttons would only duplicate them.
+        if (this.FindControl<StackPanel>("CaptionButtons") is { } captions)
+            captions.IsVisible = false;
+
+        if (this.FindControl<Grid>("ChromeGrid") is { RowDefinitions.Count: > 0 } chrome)
+            chrome.RowDefinitions[0].Height = new GridLength(MacTitleBarHeight);
+
+        // Asks AppKit for a taller title bar so the traffic lights are centred in our bar
+        // instead of hugging the top edge of it.
+        ExtendClientAreaTitleBarHeightHint = MacTitleBarHeight;
+
+        UpdateMacTitleBarInset();
+    }
+
+    // In full screen the traffic lights only appear with the menu bar, so the branding can move back to the edge.
+    private void UpdateMacTitleBarInset()
+    {
+        if (!OperatingSystem.IsMacOS() || this.FindControl<Grid>("TitleBarContent") is not { } content)
+            return;
+
+        var left = WindowState == WindowState.FullScreen ? ContentInset : MacTrafficLightInset;
+        content.Margin = new Thickness(left, 0, ContentInset, 0);
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+        if (change.Property == WindowStateProperty)
+            UpdateMacTitleBarInset();
     }
 
     protected override void OnDataContextChanged(EventArgs e)

@@ -50,6 +50,53 @@ public class DevToolsTests
         Assert.Equal(DevToolsState.Disabled, devTools.GetStatus().State);
     }
 
+    [MacOSFact]
+    public void Mac_developer_tools_use_PersistentCache_and_restore_it_exactly()
+    {
+        using var box = new Sandbox();
+        var original = SampleBnk();
+        var (devTools, state, legacy) = Create(box, original);
+        var cached = Path.Combine(box.Paths.SpotifyLocalDataDir, "PersistentCache", "offline.bnk");
+        Directory.CreateDirectory(Path.GetDirectoryName(cached)!);
+        File.Move(legacy, cached);
+        Assert.Equal(cached, devTools.BnkPath);
+        Assert.Equal(DevToolsState.Disabled, devTools.GetStatus().State);
+        devTools.Enable();
+        Assert.Equal(DevToolsState.Enabled, devTools.GetStatus().State);
+        devTools.Disable();
+        Assert.Equal(original, File.ReadAllBytes(cached));
+        Assert.Null(state.Load().DevTools);
+        Assert.False(File.Exists(legacy));
+    }
+
+    [MacOSFact]
+    public void Mac_prefers_PersistentCache_when_a_stale_legacy_file_exists()
+    {
+        using var box = new Sandbox();
+        var (devTools, _, legacy) = Create(box, Encoding.UTF8.GetBytes("stale legacy data"));
+        var cached = Path.Combine(box.Paths.SpotifyLocalDataDir, "PersistentCache", "offline.bnk");
+        Directory.CreateDirectory(Path.GetDirectoryName(cached)!);
+        File.WriteAllBytes(cached, SampleBnk());
+        Assert.Equal(cached, devTools.BnkPath);
+        devTools.Enable();
+        devTools.Disable();
+        Assert.Equal("stale legacy data", File.ReadAllText(legacy));
+    }
+
+    [Fact]
+    public void Legacy_files_and_local_data_overrides_still_resolve_inside_the_selected_directory()
+    {
+        using var box = new Sandbox();
+        var (devTools, _, legacy) = Create(box, SampleBnk());
+        Assert.Equal(legacy, devTools.BnkPath);
+        var isolated = box.Paths with { SpotifyLocalDataDir = Path.Combine(box.Root, "empty-local-override") };
+        var expected = OperatingSystem.IsMacOS()
+            ? Path.Combine(isolated.SpotifyLocalDataDir, "PersistentCache", "offline.bnk")
+            : Path.Combine(isolated.SpotifyLocalDataDir, "offline.bnk");
+        Assert.Equal(expected, isolated.SpotifyOfflineBnkPath);
+        Assert.False(File.Exists(isolated.SpotifyOfflineBnkPath));
+    }
+
     [Fact]
     public void Disable_after_Spotify_rewrote_the_file_only_puts_the_two_values_back()
     {
@@ -159,7 +206,7 @@ public class DevToolsTests
     [Fact]
     public void Real_offline_bnk_copy_round_trips()
     {
-        var real = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Spotify", "offline.bnk");
+        var real = SpotiKitPaths.FromEnvironment().SpotifyOfflineBnkPath;
         if (!File.Exists(real))
             return;
 

@@ -2,7 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="SpotiKit.App"
              xmlns:local="using:SpotiKit"
+             Name="SpotiKit"
              RequestedThemeVariant="Dark">
+
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="About SpotiKit" Click="OnAboutSpotiKit" />
+        </NativeMenu>
+    </NativeMenu.Menu>
 
     <Application.DataTemplates>
         <local:ViewLocator />

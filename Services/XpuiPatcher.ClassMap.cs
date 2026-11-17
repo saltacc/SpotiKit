@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
@@ -20,6 +22,13 @@ public sealed record SkippedClassMapping(string Generated, string Stable, string
 
 public sealed record ClassMapResult(string SpotifyVersion, IReadOnlyList<AppliedClassMapping> Applied, IReadOnlyList<SkippedClassMapping> Skipped)
 {
+    // Archives installed before selector-aware rewriting have no version field.
+    // They must use the original inverse operation, including its string matches.
+    public int? RewriteVersion { get; init; }
+    public string? ProfileId { get; init; }
+    public string? SourceSpotifyVersion { get; init; }
+    public bool IsFallback { get; init; }
+    public SpotiKit.Models.SpotifyBuildIdentity? Build { get; init; }
     public static ClassMapResult None(string spotifyVersion) => new(spotifyVersion, [], []);
 }
 
@@ -27,6 +36,45 @@ public static partial class XpuiPatcher
 {
     public const string ClassMapManifestEntry = "spotikit/class-map.json";
     public const string ClassMapScriptEntry = "spotikit/class-map.js";
+
+    // Canonical content identity survives ZIP recompression and our reversible changes.
+    public static string ResourceFingerprint(string spaPath)
+    {
+        using var zip = ZipFile.OpenRead(spaPath);
+        var manifestEntry = zip.GetEntry(ClassMapManifestEntry);
+        var manifest = manifestEntry is null ? null : JsonSerializer.Deserialize(ReadText(manifestEntry).Text,
+            ClassMapManifestJsonContext.Default.ClassMapResult);
+        using var digest = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        foreach (var entry in zip.Entries.Where(e => !e.FullName.StartsWith("spotikit/", StringComparison.Ordinal) &&
+                     !e.FullName.EndsWith('/')).OrderBy(e => e.FullName, StringComparer.Ordinal))
+        {
+            byte[] bytes;
+            if (entry.FullName == IndexEntry || manifest?.Applied.Any(m => m.Files.Any(f => f.Entry == entry.FullName)) == true)
+            {
+                var (text, bom) = ReadText(entry);
+                if (entry.FullName == IndexEntry) text = MarkerBlock().Replace(text, "");
+                if (manifest is not null)
+                {
+                    var mappings = manifest.Applied.Where(m => m.Files.Any(f => f.Entry == entry.FullName)).ToArray();
+                    var counts = new Dictionary<string, int>(StringComparer.Ordinal);
+                    text = Rename(text, mappings.ToDictionary(m => m.Stable, m => m.Generated), counts, manifest.RewriteVersion ?? 1);
+                    foreach (var mapping in mappings)
+                        if (counts.GetValueOrDefault(mapping.Stable) != mapping.Files.Single(f => f.Entry == entry.FullName).Count)
+                            throw new InvalidDataException("The installed class map no longer matches Spotify's styles.");
+                }
+                bytes = (bom ? Encoding.UTF8.GetPreamble() : []).Concat(Encoding.UTF8.GetBytes(text)).ToArray();
+            }
+            else
+            {
+                using var source = entry.Open();
+                using var memory = new MemoryStream();
+                source.CopyTo(memory);
+                bytes = memory.ToArray();
+            }
+            digest.AppendData(Encoding.UTF8.GetBytes(entry.FullName + "\0" + FileHash.Sha256(bytes) + "\n"));
+        }
+        return Convert.ToHexString(digest.GetHashAndReset());
+    }
 
     [GeneratedRegex(@"\.(-?[_a-zA-Z][_a-zA-Z0-9-]*)")]
     private static partial Regex ClassToken();
@@ -37,7 +85,7 @@ public static partial class XpuiPatcher
                         !e.FullName.StartsWith("spotikit/", StringComparison.Ordinal))
             .ToList();
 
-    private static string Rename(string text, IReadOnlyDictionary<string, string> from, Dictionary<string, int> counts) =>
+    private static string LegacyRename(string text, IReadOnlyDictionary<string, string> from, Dictionary<string, int> counts) =>
         ClassToken().Replace(text, m =>
         {
             if (!from.TryGetValue(m.Groups[1].Value, out var to))
@@ -46,13 +94,21 @@ public static partial class XpuiPatcher
             return "." + to;
         });
 
-    private static ClassMapResult ApplyClassMap(ZipArchive zip, string spotifyVersion, IReadOnlyList<ClassMapping> mappings)
+    private static string Rename(string text, IReadOnlyDictionary<string, string> from, Dictionary<string, int> counts,
+        int rewriteVersion = 2) => rewriteVersion switch
+    {
+        1 => LegacyRename(text, from, counts),
+        2 => CssClassRenamer.Rename(text, from, counts),
+        _ => throw new InvalidDataException("This class map was written by a newer SpotiKit. Update SpotiKit before changing it."),
+    };
+
+    private static ClassMapResult ApplyClassMap(ZipArchive zip, string spotifyVersion, IReadOnlyList<ClassMapping> mappings,
+        ClassMapSelection? selection)
     {
         var sheets = Stylesheets(zip).ToDictionary(e => e.FullName, ReadText, StringComparer.Ordinal);
         var present = new HashSet<string>(StringComparer.Ordinal);
         foreach (var (text, _) in sheets.Values)
-            foreach (Match m in ClassToken().Matches(text))
-                present.Add(m.Groups[1].Value);
+            present.UnionWith(CssClassRenamer.CollectClasses(text));
 
         var skipped = new List<SkippedClassMapping>();
         var map = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -70,7 +126,7 @@ public static partial class XpuiPatcher
                 map[mapping.Generated] = mapping.Stable;
         }
 
-        if (map.Count == 0)
+        if (map.Count == 0 && selection?.Profile is null)
             return new ClassMapResult(spotifyVersion, [], skipped);
 
         var files = new Dictionary<string, List<AppliedClassFile>>(StringComparer.Ordinal);
@@ -89,7 +145,11 @@ public static partial class XpuiPatcher
             .Where(m => map.ContainsKey(m.Generated) && (m.RuntimeOnly || files.ContainsKey(m.Generated)))
             .Select(m => new AppliedClassMapping(m.Generated, m.Stable, files.TryGetValue(m.Generated, out var f) ? f : []))
             .ToList();
-        var result = new ClassMapResult(spotifyVersion, applied, skipped);
+        var result = new ClassMapResult(spotifyVersion, applied, skipped)
+        {
+            RewriteVersion = 2, ProfileId = selection?.Profile?.Id, Build = selection?.Build,
+            SourceSpotifyVersion = selection?.Profile?.SpotifyVersion, IsFallback = selection?.IsFallback == true,
+        };
         WriteText(zip, ClassMapManifestEntry, JsonSerializer.Serialize(result, ClassMapManifestJsonContext.Default.ClassMapResult), hasBom: false);
         WriteText(zip, ClassMapScriptEntry, BuildClassMapScript(result), hasBom: false);
         return result;
@@ -122,7 +182,7 @@ public static partial class XpuiPatcher
             var entry = zip.GetEntry(name) ?? throw new InvalidDataException($"{name} is missing, so the class map can't be undone exactly.");
             var (text, hasBom) = ReadText(entry);
             var counts = new Dictionary<string, int>(StringComparer.Ordinal);
-            var original = Rename(text, back, counts);
+            var original = Rename(text, back, counts, manifest.RewriteVersion ?? 1);
             foreach (var (stable, count) in expected)
                 if (counts.GetValueOrDefault(stable) != count)
                     throw new InvalidDataException(
@@ -148,6 +208,10 @@ public static partial class XpuiPatcher
     {
         var map = result.Applied.ToDictionary(a => a.Generated, a => a.Stable);
         return $"/* SpotiKit class map for Spotify {result.SpotifyVersion}: {map.Count} classes */\n" +
+               $"window.__spotikitBuild = {JsonSerializer.Serialize(result.Build, ClassMapManifestJsonContext.Default.SpotifyBuildIdentity)};\n" +
+               $"window.__spotikitProfile = {JsonSerializer.Serialize(result.ProfileId)};\n" +
+               $"window.__spotikitMappingSourceVersion = {JsonSerializer.Serialize(result.SourceSpotifyVersion)};\n" +
+               $"window.__spotikitMappingIsFallback = {(result.IsFallback ? "true" : "false")};\n" +
                $"window.__spotikitClassMap = {JsonSerializer.Serialize(map, ClassMapManifestJsonContext.Default.DictionaryStringString)};\n";
     }
 }

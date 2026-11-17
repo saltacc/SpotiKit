@@ -238,6 +238,32 @@
   };
 
   var View = null;
+  function selectEntry(entry, menu, event) {
+    var options = entry._options;
+    if (typeof options.onSelect !== "function") {
+      return;
+    }
+    var label = typeof options.label === "string" ? options.label : "Extension action";
+    var failed = function (error) {
+      internal.log.error("The menu action '" + label + "' failed", error);
+      SpotiKit.notify(label + " couldn't finish. Try again later.", {
+        type: "error",
+        duration: 6000,
+      });
+    };
+    try {
+      var result = entry._kind === "profile"
+        ? options.onSelect(entry, event)
+        : options.onSelect(targetOf(menu), event);
+      if (result && typeof result.then === "function") {
+        return Promise.resolve(result).catch(failed);
+      }
+      return result;
+    } catch (error) {
+      failed(error);
+    }
+  }
+
   function EntryView() {
     if (View) {
       return View;
@@ -300,14 +326,7 @@
           leadingIcon: iconElement(o.icon),
           trailingIcon: iconElement(checked ? "check" : o.trailingIcon),
           onClick: function (event) {
-            if (typeof o.onSelect !== "function") {
-              return;
-            }
-            if (entry._kind === "profile") {
-              o.onSelect(entry, event);
-            } else {
-              o.onSelect(targetOf(menu), event);
-            }
+            return selectEntry(entry, menu, event);
           },
         },
         o.label

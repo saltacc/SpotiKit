@@ -439,7 +439,8 @@
       return { close: function () {} };
     }
     var key = bar.enqueueSnackbar(message, {
-      variant: options.type === "error" ? "error" : "default",
+      // Spotify's provider registers default/headless content; other variants can be invisible.
+      variant: "default",
       autoHideDuration: options.duration,
       persist: options.duration === Infinity,
     });

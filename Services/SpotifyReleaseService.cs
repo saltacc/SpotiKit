@@ -26,6 +26,8 @@ public sealed partial class SpotifyReleaseService(HttpClient? http = null)
 
     public async Task<LatestSpotifyRecord> LatestAsync(LatestSpotifyRecord? known, CancellationToken cancellationToken = default)
     {
+        if (!OperatingSystem.IsWindows())
+            throw new InvalidOperationException("Spotify release checks through the Windows installer are not available on this platform.");
         using (var head = await _http.SendAsync(new HttpRequestMessage(HttpMethod.Head, SetupUrl), cancellationToken))
         {
             head.EnsureSuccessStatusCode();

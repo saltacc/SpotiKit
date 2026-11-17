@@ -36,7 +36,11 @@
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.4" />
     <!-- Always restored: one NuGet restore serves every configuration. -->
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" PrivateAssets="All" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" PrivateAssets="All">
+      <!-- The SDK excludes PrivateAssets=All from publish unless explicitly enabled.
+           Debug builds call WithDeveloperTools, so their packaged app needs this assembly. -->
+      <Publish Condition="'$(Configuration)' == 'Debug'">true</Publish>
+    </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
 </Project>

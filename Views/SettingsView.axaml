@@ -70,7 +70,7 @@
                                     <StackPanel Spacing="2">
                                         <TextBlock Text="Spotify updates" FontWeight="SemiBold" FontSize="13" />
                                         <TextBlock Classes="caption" TextWrapping="Wrap"
-                                                   Text="Which Spotify updates are let through is set on the Updates page." />
+                                                   Text="{Binding SpotifyUpdatesDescription}" />
                                     </StackPanel>
                                 </Grid>
                                 <Rectangle Classes="divider" IsVisible="{Binding CanRunInBackground}" />

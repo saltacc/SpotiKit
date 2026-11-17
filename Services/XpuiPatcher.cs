@@ -67,7 +67,7 @@ public static partial class XpuiPatcher
         }
         catch (UnauthorizedAccessException)
         {
-            return XpuiInspection.Unreadable("Windows denied read access to the file.");
+            return XpuiInspection.Unreadable("Read access to the file was denied.");
         }
         catch (IOException ex)
         {
@@ -82,7 +82,8 @@ public static partial class XpuiPatcher
     }
 
     public static ClassMapResult Inject(string spaPath, string loaderScript, string version,
-        IReadOnlyList<ClassMapping>? classMap = null, string? spotifyVersion = null, AddonSet? addons = null)
+        IReadOnlyList<ClassMapping>? classMap = null, string? spotifyVersion = null, AddonSet? addons = null,
+        ClassMapSelection? selection = null)
     {
         var result = ClassMapResult.None(spotifyVersion ?? "unknown");
         RewriteSafely(spaPath, zip =>
@@ -97,18 +98,19 @@ public static partial class XpuiPatcher
 
             RevertClassMap(zip);
             if (classMap is { Count: > 0 })
-                result = ApplyClassMap(zip, spotifyVersion ?? "unknown", classMap);
+                result = ApplyClassMap(zip, spotifyVersion ?? "unknown", classMap, selection);
 
             if (addons is not null)
                 WriteAddons(zip, addons);
             else
                 RemoveAddons(zip);
 
-            WriteText(zip, IndexEntry, html.Insert(at, BuildMarker(version, result.Applied.Count > 0, addons is not null)), hasBom);
+            WriteText(zip, IndexEntry, html.Insert(at, BuildMarker(version,
+                result.Applied.Count > 0 || result.ProfileId is not null, addons is not null)), hasBom);
             WriteText(zip, LoaderEntry, loaderScript, hasBom: false);
         },
         check => check.HasSpotiKit && check.HasLoaderFile && check.SpotiKitVersion == version &&
-                 check.HasClassMap == result.Applied.Count > 0,
+                 check.HasClassMap == (result.Applied.Count > 0 || result.ProfileId is not null),
         "The patched copy did not contain the loader, so the original was left untouched.");
         return result;
     }

@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+
+jobs:
+  test:
+    name: Test ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            runner: windows-latest
+            rid: win-x64
+          # Explicit labels exercise native ARM64 and Intel instead of relying on macos-latest.
+          - name: macOS Apple Silicon
+            runner: macos-15
+            rid: osx-arm64
+            architecture: arm64
+          - name: macOS Intel
+            runner: macos-15-intel
+            rid: osx-x64
+            architecture: x86_64
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Install class-map tooling dependencies
+        run: npm ci --prefix tools/class-map
+
+      - name: Test framework APIs and class-map tooling
+        run: node --test tools/api/tests/*.test.mjs tools/class-map/tests/*.test.mjs
+
+      # Owned bundle fixtures exercise transactions and codesign without Spotify or user data.
+      # The optional real-client tests report an explicit skip when no external .app is supplied.
+      - name: Run Release tests
+        run: >-
+          dotnet test tests/SpotiKit.Tests/SpotiKit.Tests.csproj --configuration Release
+          --logger "console;verbosity=normal" --logger "trx;LogFileName=tests.trx"
+          --results-directory TestResults
+
+      - name: Check Mac scripts and bundle metadata
+        if: runner.os == 'macOS'
+        run: |
+          bash -n tools/run-macos-dev.sh tools/sign-macos-spotify.sh tools/macos/build-dev-app.sh
+          /usr/bin/plutil -lint tools/macos/Info.plist
+
+      - name: Publish Mac Release for the native architecture
+        if: runner.os == 'macOS'
+        run: >-
+          dotnet publish SpotiKit.csproj --configuration Release --runtime "${{ matrix.rid }}"
+          --self-contained true --output "publish/ci/${{ matrix.rid }}"
+
+      - name: Build and validate the Mac development app
+        if: runner.os == 'macOS'
+        env:
+          SPOTIKIT_CI_RID: ${{ matrix.rid }}
+          SPOTIKIT_CI_ARCH: ${{ matrix.architecture }}
+        run: |
+          task_app="$(bash tools/macos/build-dev-app.sh "$SPOTIKIT_CI_RID")"
+          /usr/bin/plutil -lint "$task_app/Contents/Info.plist"
+          task_executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$task_app/Contents/Info.plist")"
+          test -x "$task_app/Contents/MacOS/$task_executable"
+          test -f "$task_app/Contents/Resources/SpotiKit.icns"
+          /usr/bin/lipo -verify_arch "$SPOTIKIT_CI_ARCH" "$task_app/Contents/MacOS/$task_executable"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: tests-${{ matrix.rid }}
+          path: TestResults/*.trx
+          if-no-files-found: ignore
+          retention-days: 7

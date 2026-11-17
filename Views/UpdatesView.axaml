@@ -48,9 +48,9 @@
                                 </StackPanel>
                             </Border>
 
-                            <Rectangle Classes="divider" />
+                            <Rectangle Classes="divider" IsVisible="{Binding CanManageSpotifyUpdates}" />
 
-                            <StackPanel Spacing="10">
+                            <StackPanel Spacing="10" IsVisible="{Binding CanManageSpotifyUpdates}">
                                 <TextBlock Text="Which updates Spotify gets" FontWeight="SemiBold" FontSize="13" />
                                 <ListBox Classes="modes" Margin="-5,0" ItemsSource="{x:Static vm:UpdatesViewModel.Modes}" SelectedItem="{Binding SelectedMode}">
                                     <ListBox.ItemsPanel>

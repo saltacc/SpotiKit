@@ -1,0 +1,50 @@
+{
+  "platform": "macos",
+  "architecture": "arm64",
+  "spotifyVersion": "1.3.9.2055",
+  "resourceFingerprint": "12232976DCDC95DB295239897C34C086AF177ADA61E81FF50D293D7DF60E4820",
+  "snapshotSha256": "8E2B14A51E2FA79C8552D82718FAE4EAF9F6FE14DCF63FE113559272DE382A52",
+  "referenceSnapshot": "classmaps/1.3.9.2055/snapshot.json",
+  "summary": {
+    "sourceVersion": "1.3.9.2055",
+    "capturedClasses": 6356,
+    "acceptedMappings": 5360,
+    "evidenceCounts": {
+      "unique-exact-css-fingerprint": 4663,
+      "exact-css-distinguished-by-semantics": 485,
+      "strong-port-and-semantics": 176,
+      "exact-css-distinguished-by-element-tag": 22,
+      "same-generated-class": 139,
+      "exact-css-with-unique-module-reference": 2,
+      "runtime-observation": 5
+    },
+    "unresolvedNames": 1006,
+    "conflicts": 0,
+    "theme": {
+      "requiredStableNames": 340,
+      "unresolved": [
+        "artist-concerts-page",
+        "artist-page-content",
+        "artist-pick-image",
+        "artist-popular-tracks",
+        "artist-side-column",
+        "cinema-media-container--hero",
+        "cinema-media-container--video",
+        "component-shelf-item",
+        "confirm-dialog-button",
+        "cultural-moment-hub-content",
+        "episode-page-content",
+        "grid-container",
+        "npv-artist-about-placeholder-image",
+        "npv-lyrics-section",
+        "npv-placeholder-section",
+        "npv-placeholder-shape--circle",
+        "play-button-slot",
+        "playlist-edit-details-field",
+        "settings-lossless-confirm-button",
+        "verified-badge-description",
+        "whats-new-release-row"
+      ]
+    }
+  }
+}

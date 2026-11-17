@@ -1,0 +1,42 @@
+[
+  {
+    "stable": "global-nav-bar",
+    "generated": "EmXZMILXH0bP7U461Va6",
+    "evidence": {
+      "description": "Observed on a clean Apple Silicon Spotify client",
+      "testAttributeOrRelationship": "global-nav-bar"
+    }
+  },
+  {
+    "stable": "global-nav-bar-actions",
+    "generated": "RFcxTfF4uv17cuvbVrOl",
+    "evidence": {
+      "description": "Observed on a clean Apple Silicon Spotify client",
+      "testAttributeOrRelationship": "container beside user-widget-link"
+    }
+  },
+  {
+    "stable": "global-nav-bar-history-buttons",
+    "generated": "QCRPYyruwIqZoYNEvhDB",
+    "evidence": {
+      "description": "Observed on a clean Apple Silicon Spotify client",
+      "testAttributeOrRelationship": "parent of top-bar-back-button"
+    }
+  },
+  {
+    "stable": "global-nav-home-button",
+    "generated": "qxmESh112XlM9plvFzlP",
+    "evidence": {
+      "description": "Observed on a clean Apple Silicon Spotify client",
+      "testAttributeOrRelationship": "home-button"
+    }
+  },
+  {
+    "stable": "user-widget-button",
+    "generated": "T2Eo3cBtpiwzYNeNZ2yS",
+    "evidence": {
+      "description": "Observed on a clean Apple Silicon Spotify client",
+      "testAttributeOrRelationship": "user-widget-link"
+    }
+  }
+]

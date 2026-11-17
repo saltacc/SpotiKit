@@ -53,7 +53,9 @@ public sealed class SpotifyUpdateService(SpotiKitPaths paths, StateStore state, 
 
     public void Hold(SpotifyInstallation spotify, bool automatic, bool discardStagedUpdate)
     {
-        if (spotify.Edition != SpotifyEdition.Desktop || !OperatingSystem.IsWindows())
+        if (!OperatingSystem.IsWindows())
+            throw new InvalidOperationException("Holding Spotify updates is not available on this platform. Spotify manages its own updates.");
+        if (spotify.Edition != SpotifyEdition.Desktop)
             throw new InvalidOperationException("Only the Spotify desktop client's updates can be held. The Microsoft Store manages its own updates.");
 
         var status = GetStatus(spotify);
@@ -88,6 +90,8 @@ public sealed class SpotifyUpdateService(SpotiKitPaths paths, StateStore state, 
 
     public void Release(bool includeOtherTools = false, bool quiet = false)
     {
+        if (!OperatingSystem.IsWindows())
+            return;
         var ours = state.Load().Hold is not null;
         if (File.Exists(UpdatePath))
         {

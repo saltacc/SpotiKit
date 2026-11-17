@@ -63,6 +63,9 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] public partial string? ShortcutMessage { get; private set; }
 
     public bool CanRunInBackground => BackgroundSetup.ReleaseExe is not null;
+    public string SpotifyUpdatesDescription => OperatingSystem.IsWindows()
+        ? "Which Spotify updates are let through is set on the Updates page."
+        : "Spotify manages its own updates. Check compatibility and reapply SpotiKit after an update.";
     [ObservableProperty] public partial int BackupRetention { get; set; }
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsCustomAccent))]

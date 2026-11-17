@@ -25,7 +25,7 @@
 
 ## What is SpotiKit
 
-SpotiKit lets you change how Spotify looks and add new features to it. It's free and runs on Windows.
+SpotiKit lets you change how Spotify looks and add new features to it. It's free, with Windows support and an experimental macOS development build.
 
 - **Themes** give Spotify a new look.
 - **Extensions** add new buttons and features.
@@ -52,9 +52,9 @@ You find all of it in the Marketplace, a page right inside Spotify. Glowify, Liq
 
 - **One click to install.** Install or remove SpotiKit with one click. Your PC is checked before anything changes.
 - **Nothing gets lost.** SpotiKit saves a copy of Spotify before every change. Uninstall it and Spotify is back to normal.
-- **Survives Spotify updates.** Spotify only updates once SpotiKit is ready for the new version, so your setup doesn't break.
+- **Spotify update protection on Windows.** Spotify only updates once SpotiKit is ready for the new version. On Mac, check compatibility and reapply SpotiKit after Spotify updates.
 - **Safe mode.** Something acting up? Start Spotify with everything off, then turn things back on one by one.
-- **Updates itself.** New versions of SpotiKit install by themselves.
+- **Updates itself on Windows.** New versions of SpotiKit install by themselves. Mac development builds are updated from source.
 
 ## Status
 
@@ -64,13 +64,14 @@ SpotiKit **0.9.1** is in open beta. Some things may still be rough. If something
 | --- | --- |
 | Windows 10 and 11 | Open beta |
 | Linux | Planned. Most of it already works, but Flatpak, AUR and other installs still need work. |
-| macOS | Likely, since the app is built with Avalonia UI. |
+| macOS Apple Silicon | Experimental development support. Spotify 1.3.9.2055 and unchanged Liquify validated locally; build-specific mappings, complete bundle recovery, and automatic local signing. |
+| macOS Intel | Development build compiles. Native runtime validation and an Intel Spotify mapping profile are still required. |
 
 You need Spotify from [spotify.com](https://www.spotify.com/download). The version from the Microsoft Store doesn't work.
 
 ## Install
 
-Download SpotiKit on [spotikit.com](https://spotikit.com) or from the [Releases](https://github.com/NMWplays/SpotiKit/releases) page.
+For Windows, download SpotiKit on [spotikit.com](https://spotikit.com) or from the [Releases](https://github.com/NMWplays/SpotiKit/releases) page. The experimental Mac app is currently built from source using the development instructions below.
 
 1. Download `SpotiKit.exe` and run it.
 2. Open **Installation** and press **Install SpotiKit**.
@@ -98,6 +99,50 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/download).
 dotnet run --project SpotiKit.csproj
 dotnet test tests/SpotiKit.Tests
 ```
+
+On macOS, use a complete Spotify development copy for native testing:
+
+```sh
+./tools/run-macos-dev.sh --full-bundle
+```
+
+The launcher uses a .NET 10 SDK from your PATH or `~/Library/Caches/SpotiKit-dev/dotnet`, and selects `osx-arm64` or `osx-x64`. It builds and runs a self-contained `bin/macos-app/<runtime>/SpotiKit.app`, with the SpotiKit menu name, Dock/Finder logo, and a branded About item. Quit the existing bundled development app before rebuilding. Its first run copies the complete installed Spotify app to `bin/macos-full-dev/Spotify.app`. SpotiKit settings, backups, and logs stay under `bin/macos-full-dev`; the source app is preserved. Spotify itself uses your normal Spotify profile when launched. Set `SPOTIKIT_DEV_SOURCE` to choose the source for the first copy. Subsequent runs keep the development copy and its changes.
+
+To build just the Mac development app, run `./tools/macos/build-dev-app.sh osx-arm64` (or `osx-x64`). The script packages the published executable, .NET runtime, native bundle metadata, and an ICNS generated from the existing logo. The `.app` runs without a separately installed .NET runtime. Launching through `run-macos-dev.sh` also supplies the isolated development paths; opening the bundle directly uses the app's normal paths. `dotnet run` remains available, but the Mac launcher provides the complete native application identity. Public signing and notarization remain separate from this local development package.
+
+To work on an existing complete development copy:
+
+```sh
+SPOTIKIT_DEV_TARGET="$HOME/Applications/Spotify-SpotiKit-Local.app" \
+  ./tools/run-macos-dev.sh --full-bundle
+```
+
+The default `./tools/run-macos-dev.sh` remains a faster archive sandbox under `bin/macos-dev`. It copies only metadata, the executable, and the UI archive. That fixture supports patch/restore tests and the SpotiKit UI; use full-bundle mode for signing, launch, and process-control validation.
+
+On a complete Mac app, install, repair, uninstall, and restore now prepare a separate complete working bundle, verify the recovery snapshot, apply the resource change, sign locally, verify with `codesign --verify --deep --strict`, and publish the verified app. The signer preserves existing entitlements, identifier, and runtime flags, adding `com.apple.security.cs.disable-library-validation` so the locally signed executable can load Spotify's vendor-signed Chromium framework. No paid developer account, Node, Go, Spicetify CLI, or Xcode project is needed for this runtime signing step; it uses macOS's built-in tools.
+
+Mac installation and repair show a separate **Signing Spotify** progress stage between **Installing** and the final **Checking** stage. Spotify's original app stays in place while the working copy is patched; the signing stage signs and verifies the copy before publishing it. A signing failure stops installation before the final checks or launch. Windows and partial archive fixtures retain their four-stage flow.
+
+Full backups include the executable, signature metadata, file permissions, and symlinks. An unchanged valid vendor-signed pristine backup can be restored exactly. Old archive-only backups remain readable, but cannot recover an original executable or signature. A running app, incomplete native bundle, changed build, or failed signature check stops publication. The manual `tools/sign-macos-spotify.sh` helper is still available for separate development experiments.
+
+Mac publication writes a durable sibling recovery record before either app rename and holds a lock for the selected bundle. If a replacement is interrupted, the next launch verifies the recorded app copies and restores a missing or uncommitted app before detecting Spotify. External changes remain untouched. The permission check tests sibling creation, writing, rename, and removal in the app's parent folder before a backup is made; it does not probe inside the signed app. Process detection and quitting select the same Spotify bundle, including when multiple copies are running.
+
+When macOS has no active display, the patcher waits up to 30 seconds for one before initializing its window. If no display becomes available, it exits cleanly with wake/connect instructions in the startup log. The observed native display-timer failure also produces a controlled diagnostic instead of an unhandled exception. Command-line developer-tool status commands remain available without a display.
+
+The verified Mac profile is **`macos-arm64-1.3.9.2055`**. Selection first checks the exact Spotify version, architecture, pristine UI fingerprint, and CEF snapshot fingerprint. If no exact profile matches, Mac builds automatically use the closest numeric Spotify version among Mac profiles for the same architecture. Version components are compared in major/minor/build/revision order, preferring an older profile for an equal distance. Windows maps and maps for another CPU architecture are not Mac fallback candidates. The patcher identifies the source version and marks the fallback as unverified in Compatibility, the install preview, logs, and runtime diagnostics. Missing class names are skipped; the actual target build identity remains in backups and install records. A fallback can leave some theme styling incomplete. The [Mac implementation and validation notes](docs/macos-validation.md) describe the tested identity, capture workflow, results, and remaining limits.
+
+Spotify update holds, background maintenance, and automatic SpotiKit executable replacement remain Windows-only. On Mac, Spotify manages its own updates and may replace the patched app on launch. SpotiKit detects missing patches and changed build identity, including a reissued build with the same version. Recheck **Compatibility**, obtain a verified mapping for the new build, and reinstall. Signed/notarized SpotiKit `.app` distribution is outside this development implementation.
+
+For a runtime report, launch your development copy with the local debugging port and run the Node 22+ validation tool:
+
+```sh
+open -a "$HOME/Applications/Spotify-SpotiKit-Local.app" --args --remote-debugging-port=9229
+node tools/macos/validate-runtime.mjs --exercise --pages --lifecycle --screenshot
+```
+
+These flags exercise navigation and theme disable/re-enable, preserving the previous route and theme settings. Add `--playback` only for an intentional playback check: it requires a paused track and nonempty queue, performs a muted next/previous transition, and restores the track, position, pause state, and volume. Runtime captures stay in ignored development storage. Restart Spotify normally afterward to close the debugging port.
+
+Open the Marketplace using the shopping-bag button in Spotify's top-left toolbar, beside the back and forward arrows. Hovering it shows the "Marketplace" tooltip. The button remains available when you navigate to another Spotify page.
 
 ## License
 

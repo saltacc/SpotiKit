@@ -56,7 +56,7 @@ public partial class InstallViewModel : ViewModelBase
         LogEntries = new ObservableCollection<LogEntry>(log.Entries.TakeLast(MaxLogEntries));
         log.EntryAdded += OnLogEntryAdded;
         Spotify.PropertyChanged += OnSpotifyChanged;
-        BuildPlan(InstallerService.InstallPlan);
+        BuildPlan(InstallerService.InstallPlanFor(Spotify.Installation));
         SpicetifyStatus = _spicetify.Detect(Spotify.Installation);
     }
 
@@ -122,12 +122,12 @@ public partial class InstallViewModel : ViewModelBase
 
     public bool CanUninstall => IsIdle && IsInstalled;
 
-    public bool WasRemovedByUpdate => !IsInstalled && _state.Load().Install is { } record &&
-                                      !string.Equals(record.SpotifyVersion, Spotify.Installation.Version, StringComparison.OrdinalIgnoreCase);
+    public bool WasRemovedByUpdate => _state.Load().Install?.WasReplaced(Spotify.Installation) == true;
 
     public StatusKind Status => State switch
     {
         InstallState.Working => StatusKind.Busy,
+        InstallState.Completed when WasRemovedByUpdate => StatusKind.Warning,
         InstallState.Completed => StatusKind.Success,
         InstallState.Cancelled => StatusKind.Warning,
         InstallState.Failed => StatusKind.Error,
@@ -138,6 +138,7 @@ public partial class InstallViewModel : ViewModelBase
     public string Headline => State switch
     {
         InstallState.Working => _isUninstalling ? "Removing SpotiKit" : "Installing SpotiKit",
+        InstallState.Completed when WasRemovedByUpdate => "Removed by a Spotify update",
         InstallState.Completed => _isUninstalling ? "SpotiKit removed" : "Installation complete",
         InstallState.Cancelled => "Cancelled",
         InstallState.Failed => _isUninstalling ? "Removal failed" : "Installation failed",
@@ -149,6 +150,7 @@ public partial class InstallViewModel : ViewModelBase
     public string Detail => State switch
     {
         InstallState.Working => CurrentStepTitle ?? "Starting…",
+        InstallState.Completed when WasRemovedByUpdate => "Spotify replaced the patched app. Recheck Compatibility, then reinstall SpotiKit for the new build.",
         InstallState.Completed when _isUninstalling => "Spotify is back to its own files.",
         InstallState.Completed => "SpotiKit loads the next time Spotify starts.",
         InstallState.Cancelled => "Spotify was not changed.",
@@ -194,7 +196,7 @@ public partial class InstallViewModel : ViewModelBase
             return;
 
         _isUninstalling = false;
-        BuildPlan(InstallerService.InstallPlan);
+        BuildPlan(InstallerService.InstallPlanFor(Spotify.Installation));
         StartRun();
 
         var result = await _installer.InstallAsync(package, Settings.BackupRetention, new Progress<InstallProgress>(ReportProgress),
@@ -231,7 +233,7 @@ public partial class InstallViewModel : ViewModelBase
             {
                 _log.Warning("Spotify", "Spotify is still running, so SpotiKit was not removed.");
                 await _dialogs.AlertAsync("Spotify is still running",
-                    "Quit Spotify from the tray icon (right-click, Quit) and try again.");
+                    SpotifyService.QuitHint);
                 return;
             }
         }
@@ -277,7 +279,7 @@ public partial class InstallViewModel : ViewModelBase
         if (closed)
             _log.Success("Spotify", "Spotify is closed.");
         else
-            _log.Warning("Spotify", "Spotify is still running.", "Close it from the tray icon (right-click, Quit) and try again.");
+            _log.Warning("Spotify", "Spotify is still running.", SpotifyService.QuitHint);
         await Spotify.ReloadAsync();
         IsClosingSpotify = false;
         CloseSpotifyCommand.NotifyCanExecuteChanged();
@@ -361,7 +363,7 @@ public partial class InstallViewModel : ViewModelBase
                 await Spotify.ReloadAsync();
                 if (Spotify.IsRunning)
                 {
-                    await _dialogs.AlertAsync("Spotify is still running", "Quit Spotify from the tray icon (right-click, Quit) and try again.");
+                    await _dialogs.AlertAsync("Spotify is still running", SpotifyService.QuitHint);
                     return;
                 }
             }
@@ -456,6 +458,9 @@ public partial class InstallViewModel : ViewModelBase
         if (State != InstallState.Working)
             return;
 
+        if (report.Plan is { } plan && !Steps.Select(step => step.Title).SequenceEqual(plan.Select(step => step.Title)))
+            BuildPlan(plan);
+
         for (var i = 0; i < Steps.Count; i++)
         {
             var step = Steps[i];
@@ -519,6 +524,11 @@ public partial class InstallViewModel : ViewModelBase
         StartSafeModeCommand.NotifyCanExecuteChanged();
 
         if (State == InstallState.Idle && e.PropertyName == nameof(SpotifyStatusViewModel.Installation))
+        {
+            var plan = InstallerService.InstallPlanFor(Spotify.Installation);
+            if (Steps.Count != plan.Count)
+                BuildPlan(plan);
             Progress = IsInstalled ? 1 : 0;
+        }
     }
 }

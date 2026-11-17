@@ -17,7 +17,8 @@ if (!version || !(share > 0 && share <= 1)) {
 }
 
 const work = join(here, "..", "work", version);
-const snapshot = join(repo, "classmaps", from, "snapshot.json");
+const localSnapshot = join(here, "..", "work", from, "snapshot.json");
+const snapshot = existsSync(localSnapshot) ? localSnapshot : join(repo, "classmaps", from, "snapshot.json");
 for (const file of [join(work, "evidence2.json"), join(work, "names2.json"), snapshot])
   if (!existsSync(file)) throw new Error(`Missing ${file}. Capture and finish ${version} first.`);
 

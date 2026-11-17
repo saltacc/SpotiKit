@@ -19,6 +19,14 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
+    private async void OnAboutSpotiKit(object? sender, EventArgs e)
+    {
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+            desktop.MainWindow?.DataContext is MainViewModel viewModel)
+            await viewModel.Dialogs.AlertAsync("About SpotiKit",
+                $"SpotiKit {AppInfo.Version}\nCustomize Spotify with themes, extensions, apps, and snippets.");
+    }
+
     public override void OnFrameworkInitializationCompleted()
     {
         SmoothScrolling.Enable();

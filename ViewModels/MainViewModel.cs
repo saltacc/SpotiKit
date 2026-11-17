@@ -20,6 +20,7 @@ public enum AppPage
 public partial class MainViewModel : ViewModelBase
 {
     private readonly IReadOnlyList<ViewModelBase> _pages;
+    private readonly ActivityLog _log;
 
     public MainViewModel() : this(SpotiKitPaths.FromEnvironment())
     {
@@ -34,6 +35,7 @@ public partial class MainViewModel : ViewModelBase
         var backupService = new BackupService(paths);
         var stateStore = new StateStore(paths);
         var log = new ActivityLog(paths);
+        _log = log;
         var devTools = new DevToolsService(paths, spotifyService, stateStore, log);
         var addons = new AddonCatalog(paths);
         var installer = new InstallerService(spotifyService, backupService, stateStore, log, devTools, addons: addons);
@@ -119,6 +121,18 @@ public partial class MainViewModel : ViewModelBase
     {
         _ = AppUpdateService.CleanUpAsync(Environment.ProcessPath);
         Settings.ApplyOnStart();
+        var recoveries = await Task.Run(() => MacBundleRecovery.RecoverPending(Paths));
+        foreach (var recovery in recoveries)
+        {
+            var location = recovery.OriginalBundle is { } bundle ? " " + bundle : "";
+            if (recovery.NeedsAttention)
+                _log.Warning("Spotify recovery", recovery.Message + location,
+                    "Keep the retained app copies and recovery record. Close any other SpotiKit operation and quit Spotify, then reopen SpotiKit. " +
+                    "If an external app changed, inspect the recorded paths before replacing it.");
+            else
+                _log.Success("Spotify recovery", recovery.Message + location);
+        }
+        await Spotify.ReloadAsync();
         await Versions.RefreshAsync();
         await Compatibility.RunChecksAsync();
         Updates.Refresh();
